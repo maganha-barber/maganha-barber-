@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Calendar, Clock, Scissors, User, CheckCircle, X, AlertCircle } from "lucide-react";
 import { format } from "date-fns";
@@ -31,7 +31,7 @@ const BARBER_LABELS: Record<string, string> = {
   "3": "Pedro Oliveira",
 };
 
-export function MyBookings() {
+function MyBookingsContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [bookings, setBookings] = useState<Booking[]>([]);
@@ -219,5 +219,17 @@ export function MyBookings() {
         );
       })}
     </div>
+  );
+}
+
+export function MyBookings() {
+  return (
+    <Suspense fallback={
+      <div className="text-center py-12">
+        <p className="text-neutral-600">Carregando agendamentos...</p>
+      </div>
+    }>
+      <MyBookingsContent />
+    </Suspense>
   );
 }

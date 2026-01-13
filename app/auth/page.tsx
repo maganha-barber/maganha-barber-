@@ -1,12 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { LogIn, Loader2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { setUser, getUser } from "@/lib/auth";
 
-export default function AuthPage() {
+function AuthContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [loading, setLoading] = useState(false);
@@ -155,5 +155,17 @@ export default function AuthPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function AuthPage() {
+  return (
+    <Suspense fallback={
+      <div className="w-full min-h-screen flex items-center justify-center bg-gradient-soft">
+        <Loader2 className="h-8 w-8 animate-spin text-gold-500" />
+      </div>
+    }>
+      <AuthContent />
+    </Suspense>
   );
 }
