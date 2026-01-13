@@ -1,8 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { Clock, Plus, X } from "lucide-react";
-import { ServiceModal } from "./ServiceModal";
+import { useRouter } from "next/navigation";
+import { Clock, Plus } from "lucide-react";
 
 interface Service {
   id: string;
@@ -64,12 +63,10 @@ const services: Service[] = [
 ];
 
 export function Services() {
-  const [selectedService, setSelectedService] = useState<Service | null>(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const router = useRouter();
 
-  function handleAgendar(service: Service) {
-    setSelectedService(service);
-    setIsModalOpen(true);
+  function handleAgendar(serviceId: string) {
+    router.push(`/agendar?servico=${serviceId}`);
   }
 
   function formatDuration(minutes: number): string {
@@ -134,7 +131,7 @@ export function Services() {
                     </div>
                   </div>
                   <button
-                    onClick={() => handleAgendar(service)}
+                    onClick={() => handleAgendar(service.id)}
                     className="px-6 py-2 bg-neutral-100 hover:bg-neutral-200 text-neutral-900 font-medium rounded-lg transition-colors flex items-center gap-2 whitespace-nowrap"
                   >
                     <Plus className="h-4 w-4" />
@@ -146,14 +143,6 @@ export function Services() {
           </div>
         </div>
       </section>
-
-      {selectedService && (
-        <ServiceModal
-          service={selectedService}
-          isOpen={isModalOpen}
-          onClose={() => setIsModalOpen(false)}
-        />
-      )}
     </>
   );
 }

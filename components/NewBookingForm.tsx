@@ -106,8 +106,11 @@ function NewBookingFormContent() {
   useEffect(() => {
     if (serviceIdFromUrl) {
       setSelectedServiceId(serviceIdFromUrl);
+    } else if (!selectedServiceId) {
+      // Se não há serviço na URL e nenhum selecionado, redirecionar para home
+      router.push("/");
     }
-  }, [serviceIdFromUrl]);
+  }, [serviceIdFromUrl, selectedServiceId, router]);
 
   useEffect(() => {
     if (selectedDate && selectedBarber) {
