@@ -4,8 +4,19 @@ import { setUser } from "@/lib/auth";
 export async function GET(request: Request) {
   const requestUrl = new URL(request.url);
   const code = requestUrl.searchParams.get("code");
-  const redirectTo = requestUrl.searchParams.get("redirect") || "/meus-agendamentos";
+  const state = requestUrl.searchParams.get("state");
   const error = requestUrl.searchParams.get("error");
+  
+  // Decodificar state para obter redirectTo
+  let redirectTo = "/meus-agendamentos";
+  if (state) {
+    try {
+      const stateData = JSON.parse(Buffer.from(state, 'base64url').toString());
+      redirectTo = stateData.redirect || "/meus-agendamentos";
+    } catch (e) {
+      // Se não conseguir decodificar, usa o padrão
+    }
+  }
 
   // Se houver erro do Google
   if (error) {
@@ -34,7 +45,7 @@ export async function GET(request: Request) {
         code,
         client_id: googleClientId,
         client_secret: googleClientSecret,
-        redirect_uri: `${requestUrl.origin}/auth/callback?redirect=${encodeURIComponent(redirectTo)}`,
+        redirect_uri: `${requestUrl.origin}/auth/callback`,
         grant_type: "authorization_code",
       }),
     });

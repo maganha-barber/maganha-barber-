@@ -13,8 +13,11 @@ export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
   const redirectTo = searchParams.get("redirect") || "/meus-agendamentos";
   
-  // URL de callback
-  const redirectUri = `${request.nextUrl.origin}/auth/callback?redirect=${encodeURIComponent(redirectTo)}`;
+  // URL de callback (sem query parameters - o Google compara exatamente)
+  const redirectUri = `${request.nextUrl.origin}/auth/callback`;
+  
+  // Usar 'state' parameter para passar o redirectTo (padrão OAuth)
+  const state = Buffer.from(JSON.stringify({ redirect: redirectTo })).toString('base64url');
   
   // Parâmetros do OAuth
   const scope = "openid email profile";
@@ -23,7 +26,7 @@ export async function GET(request: NextRequest) {
   const prompt = "consent";
   
   // URL do Google OAuth
-  const googleAuthUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${encodeURIComponent(googleClientId)}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=${responseType}&scope=${encodeURIComponent(scope)}&access_type=${accessType}&prompt=${prompt}`;
+  const googleAuthUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${encodeURIComponent(googleClientId)}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=${responseType}&scope=${encodeURIComponent(scope)}&access_type=${accessType}&prompt=${prompt}&state=${encodeURIComponent(state)}`;
 
   // Redirecionar para Google OAuth
   return NextResponse.redirect(googleAuthUrl);
