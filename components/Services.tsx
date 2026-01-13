@@ -16,7 +16,7 @@ const services: Service[] = [
   {
     id: "1",
     nome: "Completo (Corte, Barba, Sobrancelhas)",
-    descricao: "Destinado para quem quer fazer todos os serviços oferecidos aqui na Barbearia",
+    descricao: "Todos os serviços oferecidos na barbearia em um único pacote completo.",
     duracao_minutos: 80,
     preco: 78,
     icon: <Sparkles className="h-12 w-12 text-gold-500" />,
@@ -24,7 +24,7 @@ const services: Service[] = [
   {
     id: "2",
     nome: "Corte de cabelo",
-    descricao: "Um dos requisitos mais importantes em uma imagem, com toda certeza é o cabelo, pois com o cabelo, você consegue \"deixar\" de ser uma pessoa e passa a \"ser\" outra pessoa, trazendo mais confiança para si mesmo e melhorando a forma como até mesmo as pessoas enxergam você 😉",
+    descricao: "Corte profissional que traz mais confiança e melhora sua imagem pessoal.",
     duracao_minutos: 40,
     preco: 40,
     icon: <Scissors className="h-12 w-12 text-gold-500" />,
@@ -32,7 +32,7 @@ const services: Service[] = [
   {
     id: "3",
     nome: "Barba",
-    descricao: "Este tipo de serviço não se enquadra a todos, porém para que possamos passar uma autoridade maior e uma melhor imagem, este serviço é imprescindível (para quem possui barba). E claro, para melhorar completamente não podemos esquecer que o cabelo e a barba se formam como um todo 😉",
+    descricao: "Serviço essencial para passar uma autoridade maior e melhor imagem pessoal.",
     duracao_minutos: 30,
     preco: 35,
     icon: <Clock className="h-12 w-12 text-gold-500" />,
