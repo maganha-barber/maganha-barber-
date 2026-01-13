@@ -2,7 +2,7 @@
 
 import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Calendar, Clock, User, Check, AlertCircle, ChevronLeft, ChevronRight } from "lucide-react";
+import { Calendar, Clock, User, Check, AlertCircle, ChevronLeft, ChevronRight, Plus } from "lucide-react";
 import { format, addDays, startOfWeek, addWeeks, isSameDay, getDay } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { getUser } from "@/lib/auth";
@@ -253,40 +253,86 @@ function NewBookingFormContent() {
           {/* Step 0: Selecionar Serviço */}
           {step === 0 && (
             <div>
-              <h2 className="text-2xl font-bold text-neutral-900 mb-6">Selecionar serviço</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {SERVICES.filter(s => ["1", "2", "3"].includes(s.id)).map((service) => (
-                  <button
-                    key={service.id}
-                    onClick={() => {
-                      setSelectedServiceId(service.id);
-                      setTimeout(() => setStep(1), 300);
-                    }}
-                    className={`p-6 border-2 rounded-lg text-left transition-all ${
-                      selectedServiceId === service.id
-                        ? "border-purple-500 bg-purple-50"
-                        : "border-neutral-200 hover:border-purple-300"
-                    }`}
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="flex-1">
-                        <h3 className="font-bold text-lg text-neutral-900 mb-2">{service.nome}</h3>
-                        <p className="text-sm text-neutral-600 mb-3 line-clamp-2">{service.descricao}</p>
-                        <div className="flex items-center gap-4">
-                          <span className="text-sm text-neutral-600">
-                            {service.duracao_minutos} min
-                          </span>
-                          <span className="text-xl font-bold text-neutral-900">
-                            R$ {service.preco.toFixed(2)}
-                          </span>
+              <h2 className="text-2xl font-bold text-neutral-900 mb-2">Serviços</h2>
+              <p className="text-neutral-600 mb-6">Barbering</p>
+              <div className="space-y-4">
+                {SERVICES.map((service) => {
+                  const isSelected = selectedServiceId === service.id;
+                  const formatDuration = (minutes: number): string => {
+                    if (minutes >= 60) {
+                      const hours = Math.floor(minutes / 60);
+                      const mins = minutes % 60;
+                      return mins > 0 ? `${hours}h e ${mins} min` : `${hours}h`;
+                    }
+                    return `${minutes} min`;
+                  };
+                  
+                  return (
+                    <button
+                      key={service.id}
+                      onClick={() => {
+                        setSelectedServiceId(service.id);
+                      }}
+                      className={`w-full p-6 border-2 rounded-lg text-left transition-all ${
+                        isSelected
+                          ? "border-purple-500 bg-purple-50"
+                          : "border-neutral-200 hover:border-purple-300"
+                      }`}
+                    >
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-3 mb-2">
+                            <h3 className="font-bold text-lg text-neutral-900">
+                              {service.nome}
+                              {service.observacoes && (
+                                <span className="text-sm font-normal text-neutral-600 ml-2">
+                                  ({service.observacoes})
+                                </span>
+                              )}
+                            </h3>
+                          </div>
+                          <div className="flex items-center gap-2 text-sm text-neutral-600 mb-2">
+                            <Clock className="h-4 w-4" />
+                            <span>{formatDuration(service.duracao_minutos)}</span>
+                            {service.itensInclusos && (
+                              <>
+                                <span>•</span>
+                                <span>{service.itensInclusos.length} serviços</span>
+                              </>
+                            )}
+                          </div>
+                          <p className="text-sm text-neutral-600 mb-3 line-clamp-2">
+                            {service.descricao}
+                          </p>
+                          <div className="flex items-center gap-3">
+                            <span className="text-xl font-bold text-neutral-900">
+                              R$ {service.preco.toFixed(2)}
+                            </span>
+                            {service.precoOriginal && (
+                              <>
+                                <span className="text-sm text-neutral-400 line-through">
+                                  R$ {service.precoOriginal.toFixed(2)}
+                                </span>
+                                {service.desconto && (
+                                  <span className="text-sm font-semibold text-green-600">
+                                    Economize {service.desconto}%
+                                  </span>
+                                )}
+                              </>
+                            )}
+                          </div>
+                        </div>
+                        <div className="ml-4">
+                          {isSelected ? (
+                            <Check className="h-6 w-6 text-purple-500" />
+                          ) : (
+                            <Plus className="h-6 w-6 text-neutral-400" />
+                          )}
                         </div>
                       </div>
-                      {selectedServiceId === service.id && (
-                        <Check className="h-6 w-6 text-purple-500 ml-4" />
-                      )}
-                    </div>
-                  </button>
-                ))}
+                    </button>
+                  );
+                })}
               </div>
             </div>
           )}
@@ -475,7 +521,7 @@ function NewBookingFormContent() {
         </div>
 
         {/* Sidebar - Carrinho */}
-        {step >= 1 && selectedService && (
+        {step >= 0 && selectedService && (
           <div className="lg:w-96">
             <BookingCart
               service={selectedService}
