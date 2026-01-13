@@ -29,22 +29,8 @@ function AuthContent() {
     setError(null);
     const redirectTo = searchParams.get("redirect") || "/meus-agendamentos";
 
-    const googleClientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
-    
-    if (!googleClientId) {
-      setError("Google OAuth não configurado. Configure NEXT_PUBLIC_GOOGLE_CLIENT_ID");
-      setLoading(false);
-      return;
-    }
-
-    // OAuth direto com Google (igual ao outro projeto)
-    const redirectUri = `${window.location.origin}/auth/callback?redirect=${encodeURIComponent(redirectTo)}`;
-    const scope = "openid email profile";
-    const responseType = "code";
-    const googleAuthUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${encodeURIComponent(googleClientId)}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=${responseType}&scope=${encodeURIComponent(scope)}&access_type=offline&prompt=consent`;
-
-    // Redirecionar para Google OAuth
-    window.location.href = googleAuthUrl;
+    // Redirecionar para rota de API (igual ao outro projeto)
+    window.location.href = `/api/google?redirect=${encodeURIComponent(redirectTo)}`;
   }
 
   return (
