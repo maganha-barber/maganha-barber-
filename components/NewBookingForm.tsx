@@ -86,13 +86,15 @@ function NewBookingFormContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [user] = useState(getUser());
-  const [step, setStep] = useState(1);
   
   // Pegar serviço da URL ou estado
   const serviceIdFromUrl = searchParams.get("servico");
   const [selectedServiceId, setSelectedServiceId] = useState<string>(
     serviceIdFromUrl || ""
   );
+  
+  // Step 0: Selecionar serviço, Step 1: Barbeiro, Step 2: Horário, Step 3: Confirmar
+  const [step, setStep] = useState(serviceIdFromUrl ? 1 : 0);
   const [selectedBarber, setSelectedBarber] = useState<string>("1"); // Sempre Ronnie
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [selectedTime, setSelectedTime] = useState<string>("");
@@ -106,11 +108,12 @@ function NewBookingFormContent() {
   useEffect(() => {
     if (serviceIdFromUrl) {
       setSelectedServiceId(serviceIdFromUrl);
-    } else if (!selectedServiceId) {
-      // Se não há serviço na URL e nenhum selecionado, redirecionar para home
-      router.push("/");
+      setStep(1); // Se veio da URL, vai direto para seleção de barbeiro
+    } else {
+      // Se não veio da URL, começa no step 0 (seleção de serviço)
+      setStep(0);
     }
-  }, [serviceIdFromUrl, selectedServiceId, router]);
+  }, [serviceIdFromUrl]);
 
   useEffect(() => {
     if (selectedDate && selectedBarber) {
@@ -146,14 +149,18 @@ function NewBookingFormContent() {
   }
 
   function handleNext() {
-    if (step === 1 && selectedBarber) {
-      setStep(2); // Ir para horários (carrinho fica no lado direito)
+    if (step === 0 && selectedServiceId) {
+      setStep(1); // Ir para seleção de barbeiro
+    } else if (step === 1 && selectedBarber) {
+      setStep(2); // Ir para horários
     }
   }
 
   function handleBack() {
-    if (step > 1) {
+    if (step > 0) {
       setStep(step - 1);
+    } else {
+      router.push("/");
     }
   }
 
@@ -206,20 +213,6 @@ function NewBookingFormContent() {
   // Filtrar apenas dias úteis (segunda a sábado)
   const availableDays = weekDays.filter(date => getDay(date) !== 0);
 
-  if (!selectedService) {
-    return (
-      <div className="text-center py-12">
-        <p className="text-neutral-600 mb-4">Nenhum serviço selecionado.</p>
-        <button
-          onClick={() => router.push("/")}
-          className="text-gold-500 hover:text-gold-600 font-semibold"
-        >
-          Voltar para serviços
-        </button>
-      </div>
-    );
-  }
-
   return (
     <div className="w-full">
       <div className="flex flex-col lg:flex-row gap-8">
@@ -228,7 +221,9 @@ function NewBookingFormContent() {
           {/* Breadcrumb */}
           <div className="mb-8">
             <div className="flex items-center gap-2 text-sm text-neutral-600">
-              <span className={step >= 1 ? "font-semibold text-neutral-900" : ""}>Serviços</span>
+              <span className={step >= 0 ? "font-semibold text-neutral-900" : ""}>Serviço</span>
+              <span>›</span>
+              <span className={step >= 1 ? "font-semibold text-neutral-900" : ""}>Profissional</span>
               <span>›</span>
               <span className={step >= 2 ? "font-semibold text-neutral-900" : ""}>Horário</span>
               <span>›</span>
@@ -255,8 +250,49 @@ function NewBookingFormContent() {
             </div>
           )}
 
+          {/* Step 0: Selecionar Serviço */}
+          {step === 0 && (
+            <div>
+              <h2 className="text-2xl font-bold text-neutral-900 mb-6">Selecionar serviço</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {SERVICES.filter(s => ["1", "2", "3"].includes(s.id)).map((service) => (
+                  <button
+                    key={service.id}
+                    onClick={() => {
+                      setSelectedServiceId(service.id);
+                      setTimeout(() => setStep(1), 300);
+                    }}
+                    className={`p-6 border-2 rounded-lg text-left transition-all ${
+                      selectedServiceId === service.id
+                        ? "border-purple-500 bg-purple-50"
+                        : "border-neutral-200 hover:border-purple-300"
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex-1">
+                        <h3 className="font-bold text-lg text-neutral-900 mb-2">{service.nome}</h3>
+                        <p className="text-sm text-neutral-600 mb-3 line-clamp-2">{service.descricao}</p>
+                        <div className="flex items-center gap-4">
+                          <span className="text-sm text-neutral-600">
+                            {service.duracao_minutos} min
+                          </span>
+                          <span className="text-xl font-bold text-neutral-900">
+                            R$ {service.preco.toFixed(2)}
+                          </span>
+                        </div>
+                      </div>
+                      {selectedServiceId === service.id && (
+                        <Check className="h-6 w-6 text-purple-500 ml-4" />
+                      )}
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* Step 1: Selecionar Barbeiro */}
-          {step === 1 && (
+          {step === 1 && selectedService && (
             <div>
               <h2 className="text-2xl font-bold text-neutral-900 mb-6">Selecionar profissional</h2>
               <div className="space-y-4">
@@ -382,10 +418,32 @@ function NewBookingFormContent() {
           )}
 
           {/* Botões de Navegação */}
+          {step === 0 && (
+            <div className="flex justify-between mt-8 pt-6 border-t border-neutral-200">
+              <button
+                onClick={handleBack}
+                className="px-6 py-3 border border-neutral-300 font-semibold rounded-lg bg-white text-neutral-900 hover:border-purple-500 transition-all"
+              >
+                Voltar
+              </button>
+              <button
+                onClick={handleNext}
+                disabled={!selectedServiceId}
+                className={`px-8 py-3 bg-neutral-900 text-white font-semibold rounded-lg transition-all ${
+                  !selectedServiceId
+                    ? "opacity-50 cursor-not-allowed"
+                    : "hover:bg-neutral-800"
+                }`}
+              >
+                Próximo
+              </button>
+            </div>
+          )}
+
           {step === 1 && (
             <div className="flex justify-between mt-8 pt-6 border-t border-neutral-200">
               <button
-                onClick={() => router.push("/")}
+                onClick={handleBack}
                 className="px-6 py-3 border border-neutral-300 font-semibold rounded-lg bg-white text-neutral-900 hover:border-purple-500 transition-all"
               >
                 Voltar
@@ -417,7 +475,7 @@ function NewBookingFormContent() {
         </div>
 
         {/* Sidebar - Carrinho */}
-        {step >= 2 && selectedService && (
+        {step >= 1 && selectedService && (
           <div className="lg:w-96">
             <BookingCart
               service={selectedService}
