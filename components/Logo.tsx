@@ -8,118 +8,149 @@ export function Logo({ className = "h-10 w-10" }: { className?: string }) {
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
     >
-      {/* Fundo preto */}
+      {/* Fundo preto sólido */}
       <rect width="200" height="200" fill="#000000" rx="4"/>
       
-      {/* Moldura em forma de chevron/triângulo invertido */}
+      {/* Linhas do triângulo invertido/chevron - parte superior */}
       <path
-        d="M 20 40 L 100 160 L 180 40"
+        d="M 30 35 L 100 155 L 170 35"
+        stroke="#FFFFFF"
+        strokeWidth="2.5"
+        fill="none"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      
+      {/* Linhas do triângulo invertido - parte inferior */}
+      <path
+        d="M 50 165 L 100 155 L 150 165"
         stroke="#FFFFFF"
         strokeWidth="2"
         fill="none"
         strokeLinecap="round"
         strokeLinejoin="round"
-        opacity="0.3"
       />
       
-      {/* Navalhas cruzadas */}
-      <g transform="translate(100, 50)">
+      {/* Navalhas cruzadas no topo */}
+      <g transform="translate(100, 45)">
         {/* Navalha esquerda */}
         <g transform="rotate(-45)">
           {/* Lâmina */}
           <path
-            d="M -25 -8 L -15 -2 L -15 2 L -25 8"
+            d="M -28 -10 L -18 -3 L -18 3 L -28 10"
             stroke="#FFFFFF"
-            strokeWidth="2.5"
+            strokeWidth="3"
             fill="none"
             strokeLinecap="round"
           />
           {/* Alça */}
-          <rect x="-20" y="-6" width="10" height="12" fill="#FFFFFF" opacity="0.9"/>
-          {/* Detalhes na alça */}
-          <line x1="-18" y1="-4" x2="-12" y2="-4" stroke="#000000" strokeWidth="0.5"/>
-          <line x1="-18" y1="0" x2="-12" y2="0" stroke="#000000" strokeWidth="0.5"/>
-          <line x1="-18" y1="4" x2="-12" y2="4" stroke="#000000" strokeWidth="0.5"/>
+          <rect x="-22" y="-7" width="8" height="14" fill="#FFFFFF"/>
+          {/* Detalhes horizontais na alça */}
+          <line x1="-20" y1="-5" x2="-14" y2="-5" stroke="#000000" strokeWidth="0.8"/>
+          <line x1="-20" y1="-1" x2="-14" y2="-1" stroke="#000000" strokeWidth="0.8"/>
+          <line x1="-20" y1="3" x2="-14" y2="3" stroke="#000000" strokeWidth="0.8"/>
+          <line x1="-20" y1="7" x2="-14" y2="7" stroke="#000000" strokeWidth="0.8"/>
         </g>
         
         {/* Navalha direita */}
         <g transform="rotate(45)">
           {/* Lâmina */}
           <path
-            d="M 25 -8 L 15 -2 L 15 2 L 25 8"
+            d="M 28 -10 L 18 -3 L 18 3 L 28 10"
             stroke="#FFFFFF"
-            strokeWidth="2.5"
+            strokeWidth="3"
             fill="none"
             strokeLinecap="round"
           />
           {/* Alça */}
-          <rect x="10" y="-6" width="10" height="12" fill="#FFFFFF" opacity="0.9"/>
-          {/* Detalhes na alça */}
-          <line x1="12" y1="-4" x2="18" y2="-4" stroke="#000000" strokeWidth="0.5"/>
-          <line x1="12" y1="0" x2="18" y2="0" stroke="#000000" strokeWidth="0.5"/>
-          <line x1="12" y1="4" x2="18" y2="4" stroke="#000000" strokeWidth="0.5"/>
+          <rect x="14" y="-7" width="8" height="14" fill="#FFFFFF"/>
+          {/* Detalhes horizontais na alça */}
+          <line x1="16" y1="-5" x2="20" y2="-5" stroke="#000000" strokeWidth="0.8"/>
+          <line x1="16" y1="-1" x2="20" y2="-1" stroke="#000000" strokeWidth="0.8"/>
+          <line x1="16" y1="3" x2="20" y2="3" stroke="#000000" strokeWidth="0.8"/>
+          <line x1="16" y1="7" x2="20" y2="7" stroke="#000000" strokeWidth="0.8"/>
         </g>
       </g>
       
       {/* Estrela abaixo das navalhas */}
       <polygon
-        points="100,75 102,82 109,82 103,86 105,93 100,89 95,93 97,86 91,82 98,82"
+        points="100,70 102,77 109,77 103,81 105,88 100,84 95,88 97,81 91,77 98,77"
         fill="#FFFFFF"
       />
       
-      {/* Texto MAGANHA */}
+      {/* Texto MAGANHA - fonte serif com textura/distressed */}
       <text
         x="100"
-        y="110"
-        fontSize="16"
+        y="105"
+        fontSize="14"
         fontWeight="bold"
         fill="#FFFFFF"
         textAnchor="middle"
-        fontFamily="Arial, sans-serif"
-        letterSpacing="2"
-        style={{ textTransform: 'uppercase' }}
+        fontFamily="'Playfair Display', serif"
+        letterSpacing="3"
+        style={{ 
+          textTransform: 'uppercase',
+          filter: 'url(#texture)'
+        }}
       >
         MAGANHA
       </text>
       
-      {/* Texto BARBEARIA */}
+      {/* Texto BARBEARIA - fonte sans-serif maior e bold */}
       <text
         x="100"
-        y="135"
-        fontSize="22"
-        fontWeight="bold"
+        y="130"
+        fontSize="26"
+        fontWeight="900"
         fill="#FFFFFF"
         textAnchor="middle"
         fontFamily="Arial, sans-serif"
-        letterSpacing="2"
-        style={{ textTransform: 'uppercase' }}
+        letterSpacing="3"
+        style={{ 
+          textTransform: 'uppercase'
+        }}
       >
         BARBEARIA
       </text>
       
-      {/* Bigode elegante */}
-      <path
-        d="M 70 155 Q 85 150 100 155 Q 115 150 130 155"
-        stroke="#FFFFFF"
-        strokeWidth="3"
-        fill="none"
-        strokeLinecap="round"
-      />
-      {/* Curvas do bigode */}
-      <path
-        d="M 70 155 Q 75 160 80 155"
-        stroke="#FFFFFF"
-        strokeWidth="2.5"
-        fill="none"
-        strokeLinecap="round"
-      />
-      <path
-        d="M 130 155 Q 125 160 120 155"
-        stroke="#FFFFFF"
-        strokeWidth="2.5"
-        fill="none"
-        strokeLinecap="round"
-      />
+      {/* Bigode estilizado na parte inferior */}
+      <g transform="translate(100, 150)">
+        {/* Curva central */}
+        <path
+          d="M -30 0 Q 0 -8 30 0"
+          stroke="#FFFFFF"
+          strokeWidth="4"
+          fill="none"
+          strokeLinecap="round"
+        />
+        {/* Curva esquerda */}
+        <path
+          d="M -30 0 Q -25 -5 -20 0"
+          stroke="#FFFFFF"
+          strokeWidth="3.5"
+          fill="none"
+          strokeLinecap="round"
+        />
+        {/* Curva direita */}
+        <path
+          d="M 30 0 Q 25 -5 20 0"
+          stroke="#FFFFFF"
+          strokeWidth="3.5"
+          fill="none"
+          strokeLinecap="round"
+        />
+        {/* Pontas do bigode */}
+        <circle cx="-25" cy="0" r="2" fill="#FFFFFF"/>
+        <circle cx="25" cy="0" r="2" fill="#FFFFFF"/>
+      </g>
+      
+      {/* Filtro de textura para o texto MAGANHA */}
+      <defs>
+        <filter id="texture" x="0%" y="0%" width="100%" height="100%">
+          <feTurbulence baseFrequency="0.9" numOctaves="2" result="noise"/>
+          <feDisplacementMap in="SourceGraphic" in2="noise" scale="0.5"/>
+        </filter>
+      </defs>
     </svg>
   );
 }

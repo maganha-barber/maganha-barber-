@@ -79,7 +79,7 @@ export async function GET(request: Request) {
 
     // Salvar usuário no localStorage via script
     // Verificar se é admin baseado no email
-    const ADMIN_EMAILS = ['admin@magbarber.com', 'dono@magbarber.com'];
+    const ADMIN_EMAILS = ['lpmragi@gmail.com'];
     const isUserAdmin = ADMIN_EMAILS.includes(userData.email.toLowerCase());
     
     // Preparar dados do usuário com verificação de admin

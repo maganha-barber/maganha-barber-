@@ -14,13 +14,19 @@ export function UserMenu() {
   useEffect(() => {
     // Atualizar usuário quando mudar
     const updateUser = () => {
-      setUser(getUser());
+      const currentUser = getUser();
+      setUser(currentUser);
     };
+    
+    // Verificar imediatamente
     updateUser();
     
     // Listener para mudanças no localStorage e eventos customizados
     window.addEventListener('storage', updateUser);
     window.addEventListener('userUpdated', updateUser);
+    
+    // Verificar periodicamente também (para garantir sincronização)
+    const interval = setInterval(updateUser, 500);
     
     // Fechar menu ao clicar fora
     function handleClickOutside(event: MouseEvent) {
@@ -34,6 +40,7 @@ export function UserMenu() {
       window.removeEventListener('storage', updateUser);
       window.removeEventListener('userUpdated', updateUser);
       document.removeEventListener('mousedown', handleClickOutside);
+      clearInterval(interval);
     };
   }, []);
 

@@ -51,6 +51,26 @@ export function AuthSync() {
         // Disparar evento para atualizar componentes que dependem do usuário
         window.dispatchEvent(new Event('userUpdated'));
       }
+      
+      // Verificar periodicamente se o usuário foi atualizado (para garantir sincronização após login)
+      const checkUser = () => {
+        const currentUser = getUser();
+        if (currentUser) {
+          window.dispatchEvent(new Event('userUpdated'));
+        }
+      };
+      
+      // Verificar a cada 1 segundo por 10 segundos após carregar (para capturar login)
+      let checks = 0;
+      const interval = setInterval(() => {
+        checkUser();
+        checks++;
+        if (checks >= 10) {
+          clearInterval(interval);
+        }
+      }, 1000);
+      
+      return () => clearInterval(interval);
     }
   }, []);
 

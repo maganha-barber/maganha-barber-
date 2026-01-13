@@ -9,7 +9,7 @@ export interface User {
   isAdmin?: boolean;
 }
 
-const ADMIN_EMAILS = ['admin@magbarber.com', 'dono@magbarber.com']; // Emails que são admin
+const ADMIN_EMAILS = ['lpmragi@gmail.com']; // Emails que são admin
 
 export function isAdmin(user: User | null): boolean {
   if (!user) return false;
