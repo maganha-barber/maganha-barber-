@@ -3,7 +3,6 @@
 import { useEffect, useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { LogIn, Loader2 } from "lucide-react";
-import { createClient } from "@/lib/supabase/client";
 import { setUser, getUser } from "@/lib/auth";
 
 function AuthContent() {
@@ -17,36 +16,11 @@ function AuthContent() {
   }, []);
 
   async function checkSession() {
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
-    // Se Supabase estiver configurado, tenta usar autenticação real
-    if (supabaseUrl && supabaseAnonKey) {
-      try {
-        const supabase = createClient();
-        const { data: { session } } = await supabase.auth.getSession();
-        if (session?.user) {
-          // Salvar no localStorage também
-          setUser({
-            id: session.user.id,
-            email: session.user.email || '',
-            name: session.user.user_metadata?.full_name || session.user.email || '',
-            picture: session.user.user_metadata?.avatar_url,
-          });
-          const redirect = searchParams.get("redirect") || "/meus-agendamentos";
-          router.push(redirect);
-          router.refresh();
-        }
-      } catch (err) {
-        // Se der erro, continua com o modo mock
-      }
-    } else {
-      // Modo mock: verifica se já está logado
-      const user = getUser();
-      if (user) {
-        const redirect = searchParams.get("redirect") || "/meus-agendamentos";
-        router.push(redirect);
-      }
+    // Verifica se já está logado
+    const user = getUser();
+    if (user) {
+      const redirect = searchParams.get("redirect") || "/meus-agendamentos";
+      router.push(redirect);
     }
   }
 
@@ -55,43 +29,22 @@ function AuthContent() {
     setError(null);
     const redirectTo = searchParams.get("redirect") || "/meus-agendamentos";
 
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
-    // Se Supabase estiver configurado, usa autenticação real
-    if (supabaseUrl && supabaseAnonKey) {
-      try {
-        const supabase = createClient();
-        const { error } = await supabase.auth.signInWithOAuth({
-          provider: "google",
-          options: {
-            redirectTo: `${window.location.origin}/auth/callback?redirect=${encodeURIComponent(redirectTo)}`,
-          },
-        });
-
-        if (error) {
-          setError("Erro ao fazer login: " + error.message);
-          setLoading(false);
-        }
-      } catch (err: any) {
-        setError("Erro ao conectar com Google: " + err.message);
-        setLoading(false);
-      }
-    } else {
-      // Modo mock: simula login do Google
-      // Para testar como admin, use: admin@magbarber.com ou dono@magbarber.com
-      setTimeout(() => {
-        const mockUser = {
-          id: crypto.randomUUID(),
-          email: `usuario${Math.floor(Math.random() * 1000)}@gmail.com`,
-          name: "Usuário Google",
-          picture: undefined,
-        };
-        setUser(mockUser);
-        router.push(redirectTo);
-        router.refresh();
-      }, 1000);
+    const googleClientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
+    
+    if (!googleClientId) {
+      setError("Google OAuth não configurado. Configure NEXT_PUBLIC_GOOGLE_CLIENT_ID");
+      setLoading(false);
+      return;
     }
+
+    // OAuth direto com Google (igual ao outro projeto)
+    const redirectUri = `${window.location.origin}/auth/callback?redirect=${encodeURIComponent(redirectTo)}`;
+    const scope = "openid email profile";
+    const responseType = "code";
+    const googleAuthUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${encodeURIComponent(googleClientId)}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=${responseType}&scope=${encodeURIComponent(scope)}&access_type=offline&prompt=consent`;
+
+    // Redirecionar para Google OAuth
+    window.location.href = googleAuthUrl;
   }
 
   return (
