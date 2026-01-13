@@ -30,13 +30,13 @@ export function Navbar() {
         <div className="flex justify-between items-center h-20">
           {/* Logo */}
           <Link href="/" className="flex items-center space-x-3 group">
-            <Logo className="h-10 w-10 text-gold-400 group-hover:text-gold-300 transition-colors" />
+            <Logo className="h-12 w-12" />
             <div className="flex flex-col">
               <span className="font-serif text-xl font-bold text-white leading-tight">
-                MagBarber
+                MAGANHA
               </span>
               <span className="text-[10px] text-gold-400/80 font-medium tracking-wider uppercase">
-                Premium
+                BARBEARIA
               </span>
             </div>
           </Link>
