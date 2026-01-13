@@ -17,6 +17,7 @@ interface Service {
   precoOriginal?: number;
   desconto?: number;
   itensInclusos?: string[];
+  observacoes?: string;
 }
 
 interface Barber {
