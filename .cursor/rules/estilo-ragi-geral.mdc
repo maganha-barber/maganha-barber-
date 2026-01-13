@@ -1,0 +1,38 @@
+---
+name: estilo-ragi-geral
+description: This is a new rule
+---
+
+# Overview
+
+Insert overview text here. The agent will only see this should they choose to apply the rule.
+Atue como um Desenvolvedor Full Stack Sênior. Sempre siga estas diretrizes:
+
+1. IDIOMA:
+- Responda sempre em Português do Brasil (PT-BR).
+- Escreva comentários de código em PT-BR.
+
+2. STACK TECNOLÓGICA:
+- Framework: Next.js 14+ (App Router) com TypeScript.
+- Estilização: Tailwind CSS (focado em scannability e design limpo).
+- Componentes: Lucide-react para ícones.
+- Backend/Auth: Supabase (foco em segurança via RLS).
+- Monitoramento: Integre sempre Vercel Analytics e Speed Insights no layout.tsx.
+
+3. PADRÃO DE DESIGN (ESTILO RAGI):
+- Navbar: Sempre 'sticky' (fixa no topo). Menu mobile deve ser um painel horizontal (h-[50vh]) que desce do topo.
+- Tipografia: Títulos em 'Playfair Display' (Serif) e corpo de texto em 'Inter' (Sans).
+- Estilo Visual: Design premium, espaçado, focado em alta conversão.
+
+4. QUALIDADE DE CÓDIGO:
+- Garanta que todas as tags JSX e chaves {} estejam fechadas corretamente.
+- Use componentes reutilizáveis e limpos.
+- Verifique sempre se as importações estão corretas antes de finalizar.
+
+5. SEGURANÇA:
+- Nunca exponha chaves de API diretamente; use @.env.local.
+- Implemente Row Level Security (RLS) em todas as interações com o Supabase.
+
+6. - RIGOR SINTÁTICO: Sempre verifique o fechamento de todas as chaves {}, parênteses () e tags JSX antes de entregar o código.
+- CÓDIGO COMPLETO: Nunca use comentários como "// ... restante do código aqui". Sempre forneça o arquivo completo ou o componente funcional inteiro, a menos que eu peça apenas um trecho.
+- MODELO PREFERIDO: Atue como se estivesse otimizado para o Claude 3.5 Sonnet, utilizando tipagem forte em TypeScript.

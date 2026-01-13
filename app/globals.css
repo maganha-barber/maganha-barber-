@@ -1,0 +1,46 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap');
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: #faf9f7;
+  --foreground: #1a1a1a;
+  --gold: #c9a961;
+  --gold-light: #e8d9b4;
+  --gold-dark: #a68b4a;
+  --neutral: #2d2d2d;
+  --neutral-light: #f5f5f3;
+}
+
+body {
+  color: var(--foreground);
+  background: var(--background);
+  font-family: 'Inter', sans-serif;
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+  
+  .gradient-gold {
+    background: linear-gradient(135deg, #c9a961 0%, #a68b4a 100%);
+  }
+  
+  .gradient-soft {
+    background: linear-gradient(to bottom, #faf9f7 0%, #f5f5f3 100%);
+  }
+  
+  .text-gold {
+    color: #c9a961;
+  }
+  
+  .border-gold {
+    border-color: #c9a961;
+  }
+  
+  .bg-gold {
+    background-color: #c9a961;
+  }
+}
