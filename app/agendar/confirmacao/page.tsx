@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { CheckCircle, Calendar, Clock, User, Scissors, AlertCircle } from "lucide-react";
 import { format } from "date-fns";
@@ -31,7 +31,7 @@ const BARBER_LABELS: Record<string, string> = {
   "1": "Ronnie Maganha",
 };
 
-export default function ConfirmacaoPage() {
+function ConfirmacaoPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const bookingId = searchParams.get("id");
@@ -192,5 +192,17 @@ export default function ConfirmacaoPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function ConfirmacaoPage() {
+  return (
+    <Suspense fallback={
+      <div className="w-full min-h-screen flex items-center justify-center bg-white">
+        <p className="text-neutral-600">Carregando...</p>
+      </div>
+    }>
+      <ConfirmacaoPageContent />
+    </Suspense>
   );
 }

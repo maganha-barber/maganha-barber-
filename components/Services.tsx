@@ -34,7 +34,7 @@ const services: Service[] = [
   {
     id: "2",
     nome: "Corte de cabelo",
-    descricao: "Um dos requisitos mais importantes em uma imagem, com toda certeza é o cabelo bem cortado e alinhado",
+    descricao: "Um dos requisitos mais importantes em uma imagem, com toda certeza é o cabelo, pois com o cabelo, você consegue \"deixar\" de ser uma pessoa e passa a \"ser\" outra pessoa, trazendo mais confiança para si mesmo e melhorando a forma como até mesmo as pessoas enxergam você 😉 E vai por mim, com certeza é para melhor!!!",
     duracao_minutos: 40,
     preco: 40,
     observacoes: "Somente adultos e crianças acima de 5 anos",
@@ -42,14 +42,14 @@ const services: Service[] = [
   {
     id: "3",
     nome: "Barba",
-    descricao: "Este tipo de serviço não se enquadra a todos, porém para que possamos passar uma boa imagem, é necessário manter a barba sempre bem aparada",
+    descricao: "Este tipo de serviço não se enquadra a todos, porém para que possamos passar uma autoridade maior e uma melhor imagem, este serviço é imprescindível (para quem possui barba). E claro, para melhorar completamente não podemos esquecer que o cabelo e a barba se formam como um todo 😉",
     duracao_minutos: 30,
     preco: 35,
   },
   {
     id: "4",
     nome: "Sobrancelhas",
-    descricao: "Juntamente com o corte e a barba, é indispensável dar uma limpada na sobrancelha para manter a harmonia do rosto",
+    descricao: "Juntamente com o corte e a barba, é indispensável dar uma limpada na sobrancelha, pois muitas pessoas não sabem, porém quando estamos com as sobrancelhas muito grandes, passamos um \"ar\" de tristeza, pois com os cabelos bem aparentes no supercílios, destacam mais um semblante caído, trazendo uma tristeza no semblante, e claro ninguém quer parecer triste 😉",
     duracao_minutos: 10,
     preco: 20,
   },
