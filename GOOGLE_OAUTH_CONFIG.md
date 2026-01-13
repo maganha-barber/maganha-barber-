@@ -1,94 +1,82 @@
-# 🔐 Configuração do Google OAuth - Google Cloud Console
+# Configuração do Google OAuth
 
-## 📍 Onde encontrar as URLs necessárias:
+## Erro: redirect_uri_mismatch
 
-### 1. URL do Supabase:
-- Acesse: https://supabase.com/dashboard
-- Vá em: **Settings** → **API**
-- Copie: **Project URL** (exemplo: `https://abcdefghijklmnop.supabase.co`)
+Este erro ocorre quando o `redirect_uri` enviado ao Google não corresponde **exatamente** ao que está configurado no Google Cloud Console.
 
----
+## Como corrigir:
 
-## 🔧 Configuração no Google Cloud Console:
+### 1. Acesse o Google Cloud Console
+- Vá para: https://console.cloud.google.com/
+- Selecione seu projeto
 
-### Passo 1: Acesse suas credenciais
-1. Vá em: **APIs & Services** → **Credentials**
-2. Clique no seu **OAuth 2.0 Client ID** (ou crie um novo)
+### 2. Configure as URIs de redirecionamento autorizadas
 
-### Passo 2: Preencha os campos:
+**Vá em:** APIs & Services → Credentials → Seu OAuth 2.0 Client ID → Authorized redirect URIs
 
-#### ✅ **Authorized JavaScript origins:**
-Adicione as seguintes URLs (uma por linha):
+### 3. Adicione EXATAMENTE estas URIs (sem trailing slash):
 
+**Para desenvolvimento local:**
 ```
-https://seu-projeto.supabase.co
-```
-
-**Exemplo:**
-```
-https://abcdefghijklmnop.supabase.co
-```
-
-**Nota:** Após fazer deploy na Vercel, você pode adicionar também:
-```
-https://seu-projeto.vercel.app
-```
-
----
-
-#### ✅ **Authorized redirect URIs:**
-Adicione as seguintes URLs (uma por linha):
-
-```
-https://seu-projeto.supabase.co/auth/v1/callback
 http://localhost:3000/auth/callback
 ```
 
-**Exemplo:**
+**Para produção (Vercel):**
 ```
-https://abcdefghijklmnop.supabase.co/auth/v1/callback
+https://maganha-barber-2756.vercel.app/auth/callback
+```
+
+**IMPORTANTE:**
+- ✅ Use `https://` (não `http://`) em produção
+- ✅ Não adicione trailing slash (`/`) no final
+- ✅ Não adicione query parameters (`?redirect=...`)
+- ✅ O caminho deve ser exatamente `/auth/callback`
+- ✅ Use o domínio exato do seu site (verifique na Vercel)
+
+### 4. Verifique o domínio na Vercel
+
+1. Acesse seu projeto na Vercel
+2. Vá em Settings → Domains
+3. Copie o domínio exato (ex: `maganha-barber-2756.vercel.app`)
+4. Use esse domínio EXATO no Google Cloud Console
+
+### 5. Exemplo de configuração correta:
+
+```
+Authorized redirect URIs:
+https://maganha-barber-2756.vercel.app/auth/callback
 http://localhost:3000/auth/callback
 ```
 
-**Nota:** Após fazer deploy na Vercel, adicione também:
+### 6. Após adicionar, aguarde alguns minutos
+
+O Google pode levar alguns minutos para propagar as mudanças.
+
+### 7. Verifique as variáveis de ambiente na Vercel
+
+Certifique-se de que estas variáveis estão configuradas:
+
 ```
-https://seu-projeto.vercel.app/auth/callback
-```
-
----
-
-### Passo 3: Salvar
-- Clique em **"Save"** no final da página
-- Aguarde alguns segundos para as alterações serem aplicadas
-
----
-
-## ✅ Resumo Rápido:
-
-### **Authorized JavaScript origins:**
-```
-https://seu-projeto.supabase.co
+GOOGLE_CLIENT_ID=seu-client-id-aqui
+GOOGLE_CLIENT_SECRET=seu-client-secret-aqui
+NEXT_PUBLIC_GOOGLE_CLIENT_ID=seu-client-id-aqui (opcional, para uso no cliente)
 ```
 
-### **Authorized redirect URIs:**
-```
-https://seu-projeto.supabase.co/auth/v1/callback
-http://localhost:3000/auth/callback
-```
+## Debug
 
----
+Se ainda estiver com problemas, verifique:
 
-## 🔍 Como encontrar sua URL do Supabase:
+1. O domínio está correto? (sem `www`, sem porta, sem trailing slash)
+2. Está usando `https://` em produção?
+3. As variáveis de ambiente estão configuradas corretamente?
+4. Aguardou alguns minutos após adicionar a URI?
 
-1. Acesse: https://supabase.com/dashboard
-2. Selecione seu projeto
-3. Vá em: **Settings** (ícone de engrenagem) → **API**
-4. Copie a **Project URL** que aparece no topo
+## Formato esperado do redirect_uri:
 
----
+O código está enviando: `${origin}/auth/callback`
 
-## ⚠️ Importante:
+Onde `origin` é:
+- Local: `http://localhost:3000`
+- Produção: `https://maganha-barber-2756.vercel.app` (ou seu domínio customizado)
 
-- Substitua `seu-projeto` pela URL real do seu projeto Supabase
-- A URL deve começar com `https://` e não pode ter barra `/` no final
-- Após o deploy na Vercel, você precisará adicionar a URL da Vercel também
+Certifique-se de que essa URI EXATA está no Google Cloud Console.
