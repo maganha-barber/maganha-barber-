@@ -82,6 +82,15 @@ export async function GET(request: Request) {
     const ADMIN_EMAILS = ['admin@magbarber.com', 'dono@magbarber.com'];
     const isUserAdmin = ADMIN_EMAILS.includes(userData.email.toLowerCase());
     
+    // Preparar dados do usuário com verificação de admin
+    const userDataToSave = {
+      id: userData.id || userData.email,
+      email: userData.email,
+      name: userData.name || userData.email,
+      picture: userData.picture,
+      isAdmin: isUserAdmin
+    };
+    
     const html = `
       <!DOCTYPE html>
       <html>
@@ -89,13 +98,7 @@ export async function GET(request: Request) {
           <title>Redirecionando...</title>
           <script>
             // Salvar dados do usuário no localStorage com verificação de admin
-            const userData = ${JSON.stringify({
-              id: userData.id || userData.email,
-              email: userData.email,
-              name: userData.name || userData.email,
-              picture: userData.picture,
-              isAdmin: ${isUserAdmin}
-            })};
+            const userData = ${JSON.stringify(userDataToSave)};
             localStorage.setItem('magbarber_user', JSON.stringify(userData));
             // Disparar evento para atualizar componentes
             window.dispatchEvent(new Event('userUpdated'));
