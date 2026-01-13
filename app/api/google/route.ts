@@ -14,7 +14,12 @@ export async function GET(request: NextRequest) {
   const redirectTo = searchParams.get("redirect") || "/meus-agendamentos";
   
   // URL de callback (sem query parameters - o Google compara exatamente)
+  // IMPORTANTE: Esta URI deve corresponder EXATAMENTE ao que está no Google Cloud Console
   const redirectUri = `${request.nextUrl.origin}/auth/callback`;
+  
+  // Log para debug (remover em produção se necessário)
+  console.log('Redirect URI sendo usado:', redirectUri);
+  console.log('Origin:', request.nextUrl.origin);
   
   // Usar 'state' parameter para passar o redirectTo (padrão OAuth)
   const state = Buffer.from(JSON.stringify({ redirect: redirectTo })).toString('base64url');
