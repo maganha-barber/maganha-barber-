@@ -81,60 +81,69 @@ export function Services() {
   return (
     <>
       <section id="servicos" className="w-full py-20 bg-white">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="mb-12">
-            <h2 className="text-3xl font-bold text-neutral-900 mb-2">Barbering</h2>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="mb-12 text-center">
+            <h2 className="text-3xl md:text-4xl font-bold text-neutral-900 mb-2">Nossos Serviços</h2>
+            <div className="w-20 h-0.5 bg-gold-500 mx-auto"></div>
           </div>
           
-          <div className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {services.map((service) => (
               <div
                 key={service.id}
-                className="bg-white border border-neutral-200 rounded-lg p-6 hover:shadow-md transition-shadow"
+                className="bg-white border border-neutral-200 rounded-lg overflow-hidden hover:shadow-lg transition-all duration-300 flex flex-col"
               >
-                <div className="flex items-start justify-between gap-4">
-                  <div className="flex-1">
-                    <h3 className="text-lg font-bold text-neutral-900 mb-2">
-                      {service.nome}
-                    </h3>
-                    <div className="flex items-center gap-2 text-sm text-neutral-600 mb-2">
-                      <Clock className="h-4 w-4" />
-                      <span>{formatDuration(service.duracao_minutos)}</span>
-                      {service.itensInclusos && (
-                        <>
-                          <span>•</span>
-                          <span>{service.itensInclusos.length} serviços</span>
-                        </>
-                      )}
-                    </div>
-                    {service.descricao && (
-                      <p className="text-sm text-neutral-600 mb-3 line-clamp-2">
-                        {service.descricao}
-                      </p>
+                {/* Imagem/Placeholder */}
+                <div className="h-48 bg-gradient-to-br from-neutral-100 to-neutral-200 flex items-center justify-center">
+                  <Clock className="h-16 w-16 text-neutral-400" />
+                </div>
+                
+                {/* Conteúdo */}
+                <div className="p-6 flex-1 flex flex-col">
+                  <h3 className="text-xl font-bold text-neutral-900 mb-3">
+                    {service.nome}
+                  </h3>
+                  
+                  <div className="flex items-center gap-2 text-sm text-neutral-600 mb-3">
+                    <Clock className="h-4 w-4" />
+                    <span>{formatDuration(service.duracao_minutos)}</span>
+                    {service.itensInclusos && (
+                      <>
+                        <span>•</span>
+                        <span>{service.itensInclusos.length} serviços</span>
+                      </>
                     )}
-                    <div className="flex items-center gap-3">
-                      <span className="text-xl font-bold text-neutral-900">
-                        R$ {service.preco.toFixed(2)}
-                      </span>
-                      {service.precoOriginal && (
-                        <>
-                          <span className="text-sm text-neutral-400 line-through">
-                            R$ {service.precoOriginal.toFixed(2)}
-                          </span>
-                          {service.desconto && (
-                            <span className="text-sm font-semibold text-green-600">
-                              Economize {service.desconto}%
-                            </span>
-                          )}
-                        </>
-                      )}
-                    </div>
                   </div>
+                  
+                  {service.descricao && (
+                    <p className="text-sm text-neutral-600 mb-4 line-clamp-3 flex-1">
+                      {service.descricao}
+                    </p>
+                  )}
+                  
+                  <div className="flex items-center gap-3 mb-4">
+                    <span className="text-2xl font-bold text-neutral-900">
+                      R$ {service.preco.toFixed(2)}
+                    </span>
+                    {service.precoOriginal && (
+                      <>
+                        <span className="text-sm text-neutral-400 line-through">
+                          R$ {service.precoOriginal.toFixed(2)}
+                        </span>
+                        {service.desconto && (
+                          <span className="text-xs font-semibold text-green-600 bg-green-50 px-2 py-1 rounded">
+                            -{service.desconto}%
+                          </span>
+                        )}
+                      </>
+                    )}
+                  </div>
+                  
                   <button
                     onClick={() => handleAgendar(service.id)}
-                    className="px-6 py-2 bg-neutral-100 hover:bg-neutral-200 text-neutral-900 font-medium rounded-lg transition-colors flex items-center gap-2 whitespace-nowrap"
+                    className="w-full px-6 py-3 bg-neutral-900 hover:bg-neutral-800 text-white font-semibold rounded-lg transition-colors flex items-center justify-center gap-2"
                   >
-                    <Plus className="h-4 w-4" />
+                    <Plus className="h-5 w-5" />
                     Agendar
                   </button>
                 </div>
