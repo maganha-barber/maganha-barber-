@@ -221,9 +221,7 @@ function NewBookingFormContent() {
           {/* Breadcrumb */}
           <div className="mb-8">
             <div className="flex items-center gap-2 text-sm text-neutral-600">
-              <span className={step >= 0 ? "font-semibold text-neutral-900" : ""}>Serviço</span>
-              <span>›</span>
-              <span className={step >= 1 ? "font-semibold text-neutral-900" : ""}>Profissional</span>
+              <span className={step >= 0 ? "font-semibold text-neutral-900" : ""}>Serviços</span>
               <span>›</span>
               <span className={step >= 2 ? "font-semibold text-neutral-900" : ""}>Horário</span>
               <span>›</span>
