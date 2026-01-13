@@ -72,18 +72,23 @@ export async function GET(request: Request) {
     const userData = await userResponse.json();
 
     // Salvar usuário no localStorage via script
+    // Verificar se é admin baseado no email
+    const ADMIN_EMAILS = ['admin@magbarber.com', 'dono@magbarber.com'];
+    const isUserAdmin = ADMIN_EMAILS.includes(userData.email.toLowerCase());
+    
     const html = `
       <!DOCTYPE html>
       <html>
         <head>
           <title>Redirecionando...</title>
           <script>
-            // Salvar dados do usuário no localStorage
+            // Salvar dados do usuário no localStorage com verificação de admin
             const userData = ${JSON.stringify({
               id: userData.id || userData.email,
               email: userData.email,
               name: userData.name || userData.email,
               picture: userData.picture,
+              isAdmin: ${isUserAdmin}
             })};
             localStorage.setItem('magbarber_user', JSON.stringify(userData));
             // Disparar evento para atualizar componentes

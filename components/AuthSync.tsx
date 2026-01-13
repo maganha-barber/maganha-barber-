@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { setUser } from "@/lib/auth";
+import { getUser, setUser } from "@/lib/auth";
 
 export function AuthSync() {
   useEffect(() => {
@@ -44,6 +44,13 @@ export function AuthSync() {
       return () => {
         subscription.unsubscribe();
       };
+    } else {
+      // Se não houver Supabase, verificar localStorage e manter usuário logado
+      const savedUser = getUser();
+      if (savedUser) {
+        // Disparar evento para atualizar componentes que dependem do usuário
+        window.dispatchEvent(new Event('userUpdated'));
+      }
     }
   }, []);
 
