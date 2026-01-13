@@ -11,10 +11,16 @@ export async function GET(request: Request) {
   let redirectTo = "/meus-agendamentos";
   if (state) {
     try {
-      const stateData = JSON.parse(Buffer.from(state, 'base64url').toString());
+      // Decodificar base64url
+      const decodedState = Buffer.from(state, 'base64url').toString('utf-8');
+      const stateData = JSON.parse(decodedState);
       redirectTo = stateData.redirect || "/meus-agendamentos";
     } catch (e) {
-      // Se não conseguir decodificar, usa o padrão
+      // Se não conseguir decodificar, tenta usar o state diretamente como redirect
+      // (fallback para compatibilidade)
+      if (state && !state.includes('{')) {
+        redirectTo = decodeURIComponent(state);
+      }
     }
   }
 
