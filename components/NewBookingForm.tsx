@@ -345,7 +345,6 @@ function NewBookingFormContent() {
                     key={barber.id}
                     onClick={() => {
                       setSelectedBarber(barber.id);
-                      setTimeout(() => setStep(2), 300);
                     }}
                     className={`w-full p-6 border-2 rounded-lg text-left transition-all ${
                       selectedBarber === barber.id
@@ -362,7 +361,6 @@ function NewBookingFormContent() {
                         </div>
                         <div>
                           <h3 className="font-bold text-lg text-neutral-900">{barber.nome}</h3>
-                          <p className="text-sm text-neutral-600">Com qualquer profissional</p>
                         </div>
                       </div>
                       {selectedBarber === barber.id && (
@@ -491,6 +489,17 @@ function NewBookingFormContent() {
                 className="px-6 py-3 border border-neutral-300 font-semibold rounded-lg bg-white text-neutral-900 hover:border-purple-500 transition-all"
               >
                 Voltar
+              </button>
+              <button
+                onClick={handleNext}
+                disabled={!selectedBarber}
+                className={`px-8 py-3 bg-neutral-900 text-white font-semibold rounded-lg transition-all ${
+                  !selectedBarber
+                    ? "opacity-50 cursor-not-allowed"
+                    : "hover:bg-neutral-800"
+                }`}
+              >
+                Próximo
               </button>
             </div>
           )}
