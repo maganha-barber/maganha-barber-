@@ -411,8 +411,8 @@ function NewBookingFormContent() {
                       }}
                       className={`w-full p-6 border-2 rounded-lg text-left transition-all ${
                         isSelected
-                          ? "border-purple-500 bg-purple-50"
-                          : "border-neutral-200 hover:border-purple-300"
+                          ? "border-gold-500 bg-gold-50"
+                          : "border-neutral-200 hover:border-gold-300"
                       }`}
                     >
                       <div className="flex items-start justify-between">
@@ -460,7 +460,7 @@ function NewBookingFormContent() {
                         </div>
                         <div className="ml-4">
                           {isSelected ? (
-                            <Check className="h-6 w-6 text-purple-500" />
+                            <Check className="h-6 w-6 text-gold-500" />
                           ) : (
                             <Plus className="h-6 w-6 text-neutral-400" />
                           )}
@@ -486,14 +486,14 @@ function NewBookingFormContent() {
                     }}
                     className={`w-full p-6 border-2 rounded-lg text-left transition-all ${
                       selectedBarber === barber.id
-                        ? "border-purple-500 bg-purple-50"
-                        : "border-neutral-200 hover:border-purple-300"
+                        ? "border-gold-500 bg-gold-50"
+                        : "border-neutral-200 hover:border-gold-300"
                     }`}
                   >
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-4">
                         <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
-                          selectedBarber === barber.id ? "bg-purple-500" : "bg-neutral-100"
+                          selectedBarber === barber.id ? "bg-gold-500" : "bg-neutral-100"
                         }`}>
                           <User className={`h-6 w-6 ${selectedBarber === barber.id ? "text-white" : "text-neutral-600"}`} />
                         </div>
@@ -555,10 +555,10 @@ function NewBookingFormContent() {
                       onClick={() => setSelectedDate(date)}
                       className={`flex flex-col items-center justify-center min-w-[60px] p-3 rounded-lg transition-all ${
                         isSelected
-                          ? "bg-purple-500 text-white shadow-md"
+                          ? "bg-gold-500 text-white shadow-md"
                           : isToday
                           ? "bg-neutral-100 text-neutral-900"
-                          : "bg-white border border-neutral-200 text-neutral-900 hover:border-purple-300"
+                          : "bg-white border border-neutral-200 text-neutral-900 hover:border-gold-300"
                       }`}
                     >
                       <span className="text-xs font-medium mb-1">{dayOfWeek}</span>
@@ -584,8 +584,8 @@ function NewBookingFormContent() {
                           !slot.disponivel
                             ? "border-neutral-200 bg-neutral-100 text-neutral-400 cursor-not-allowed"
                             : selectedTime === slot.hora
-                            ? "border-purple-500 bg-purple-500 text-white shadow-md"
-                            : "border-neutral-200 bg-white text-neutral-900 hover:border-purple-300"
+                            ? "border-gold-500 bg-gold-500 text-white shadow-md"
+                            : "border-neutral-200 bg-white text-neutral-900 hover:border-gold-300"
                         }`}
                       >
                         {slot.hora}
@@ -602,7 +602,7 @@ function NewBookingFormContent() {
             <div className="flex justify-between mt-8 pt-6 border-t border-neutral-200">
               <button
                 onClick={handleBack}
-                className="px-6 py-3 border border-neutral-300 font-semibold rounded-lg bg-white text-neutral-900 hover:border-purple-500 transition-all"
+                className="px-6 py-3 border border-neutral-300 font-semibold rounded-lg bg-white text-neutral-900 hover:border-gold-500 transition-all"
               >
                 Voltar
               </button>
@@ -624,7 +624,7 @@ function NewBookingFormContent() {
             <div className="flex justify-between mt-8 pt-6 border-t border-neutral-200">
               <button
                 onClick={handleBack}
-                className="px-6 py-3 border border-neutral-300 font-semibold rounded-lg bg-white text-neutral-900 hover:border-purple-500 transition-all"
+                className="px-6 py-3 border border-neutral-300 font-semibold rounded-lg bg-white text-neutral-900 hover:border-gold-500 transition-all"
               >
                 Voltar
               </button>
@@ -646,7 +646,7 @@ function NewBookingFormContent() {
             <div className="flex justify-between mt-8 pt-6 border-t border-neutral-200">
               <button
                 onClick={handleBack}
-                className="px-6 py-3 border border-neutral-300 font-semibold rounded-lg bg-white text-neutral-900 hover:border-purple-500 transition-all"
+                className="px-6 py-3 border border-neutral-300 font-semibold rounded-lg bg-white text-neutral-900 hover:border-gold-500 transition-all"
               >
                 Voltar
               </button>
