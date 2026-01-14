@@ -21,6 +21,10 @@ const playfair = Playfair_Display({
 export const metadata: Metadata = {
   title: "Maganha Barbearia - Agendamentos Premium",
   description: "Agende seu horário na melhor barbearia da cidade",
+  icons: {
+    icon: "/icon.svg",
+    apple: "/icon.svg",
+  },
 };
 
 export default function RootLayout({
