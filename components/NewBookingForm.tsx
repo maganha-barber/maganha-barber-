@@ -85,7 +85,7 @@ const BARBERS: Barber[] = [
 function NewBookingFormContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [user] = useState(getUser());
+  const { data: session } = useSession();
   
   // Pegar serviço da URL ou estado
   const serviceIdFromUrl = searchParams.get("servico");
