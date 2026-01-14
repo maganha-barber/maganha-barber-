@@ -1,7 +1,5 @@
 "use client";
 
-import Image from "next/image";
-
 export function About() {
   return (
     <section id="sobre" className="w-full py-20 bg-neutral-800">
