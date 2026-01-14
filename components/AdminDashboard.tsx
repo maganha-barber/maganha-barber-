@@ -87,6 +87,15 @@ export function AdminDashboard() {
   });
   const [selectedTimeSlots, setSelectedTimeSlots] = useState<Set<string>>(new Set());
   const [availableTimeSlots, setAvailableTimeSlots] = useState<string[]>([]);
+  
+  // Estados para modais
+  const [showDeleteServiceModal, setShowDeleteServiceModal] = useState(false);
+  const [serviceToDelete, setServiceToDelete] = useState<string | null>(null);
+  const [showDeleteBloqueioModal, setShowDeleteBloqueioModal] = useState(false);
+  const [bloqueioToDelete, setBloqueioToDelete] = useState<string | null>(null);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [showErrorModal, setShowErrorModal] = useState(false);
+  const [modalMessage, setModalMessage] = useState("");
 
   useEffect(() => {
     if (status === "loading") return;
