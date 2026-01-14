@@ -39,8 +39,8 @@ export function About() {
 
           {/* Coluna Direita - Logo */}
           <div className="flex items-center justify-center">
-            <div className="w-full max-w-md md:max-w-lg lg:max-w-xl">
-              <Logo className="h-96 w-96 md:h-[28rem] md:w-[28rem] lg:h-[32rem] lg:w-[32rem] mx-auto" />
+            <div className="w-full max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg xl:max-w-xl">
+              <Logo className="h-64 w-64 sm:h-80 sm:w-80 md:h-96 md:w-96 lg:h-[28rem] lg:w-[28rem] xl:h-[32rem] xl:w-[32rem] mx-auto" />
             </div>
           </div>
         </div>
