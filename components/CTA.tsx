@@ -26,7 +26,7 @@ export function CTA() {
             Agendar Agora
           </Link>
           <a
-            href="tel:+5511987654321"
+            href="tel:+5535998361668"
             className="inline-flex items-center gap-3 border border-gold-500/50 text-gold-400 px-8 py-4 text-base font-medium hover:bg-gold-500/10 hover:border-gold-500 transition-all rounded-md"
           >
             <Phone className="h-5 w-5" />

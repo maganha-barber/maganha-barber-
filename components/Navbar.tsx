@@ -71,11 +71,11 @@ export function Navbar() {
             </Link>
             <div className="h-6 w-px bg-neutral-700 mx-2" />
             <a
-              href="tel:+5511987654321"
+              href="tel:+5535998361668"
               className="text-gold-400 hover:text-gold-300 font-semibold text-sm transition-colors px-3 py-2 flex items-center gap-2"
             >
               <Phone className="h-4 w-4" />
-              (11) 98765-4321
+              35 99836-1668
             </a>
             <UserMenu />
           </div>
@@ -131,12 +131,12 @@ export function Navbar() {
             </Link>
             <div className="border-t border-neutral-700 my-4" />
             <a
-              href="tel:+5511987654321"
+              href="tel:+5535998361668"
               onClick={() => setIsOpen(false)}
               className="text-gold-400 font-bold text-base py-2 flex items-center gap-2"
             >
               <Phone className="h-5 w-5" />
-              (11) 98765-4321
+              35 99836-1668
             </a>
             <a
               href="#"
