@@ -604,13 +604,14 @@ export function AdminDashboard() {
               <div className="space-y-4">
                 {services.map((service) => {
                   const isEditing = editingServiceId === service.id;
+                  const editedService = editedServices[service.id] || service;
 
                   return (
                     <div
                       key={service.id}
                       className="border border-neutral-200 rounded-lg p-4"
                     >
-                      {isEditing && editedService ? (
+                      {isEditing ? (
                         <div className="space-y-4">
                           <div>
                             <label className="block text-sm font-medium text-neutral-700 mb-1">
@@ -620,7 +621,10 @@ export function AdminDashboard() {
                               type="text"
                               value={editedService.nome}
                               onChange={(e) =>
-                                setEditedService({ ...editedService, nome: e.target.value })
+                                setEditedServices({
+                                  ...editedServices,
+                                  [service.id]: { ...editedService, nome: e.target.value },
+                                })
                               }
                               className="w-full px-3 py-2 border border-neutral-300 rounded-md"
                             />
@@ -632,13 +636,16 @@ export function AdminDashboard() {
                             <textarea
                               value={editedService.descricao || ""}
                               onChange={(e) =>
-                                setEditedService({ ...editedService, descricao: e.target.value })
+                                setEditedServices({
+                                  ...editedServices,
+                                  [service.id]: { ...editedService, descricao: e.target.value },
+                                })
                               }
                               className="w-full px-3 py-2 border border-neutral-300 rounded-md"
                               rows={3}
                             />
                           </div>
-                          <div className="grid grid-cols-2 gap-4">
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div>
                               <label className="block text-sm font-medium text-neutral-700 mb-1">
                                 Duração (minutos)
@@ -647,12 +654,15 @@ export function AdminDashboard() {
                                 type="number"
                                 value={editedService.duracao_minutos}
                                 onChange={(e) =>
-                                  setEditedService({
-                                    ...editedService,
-                                    duracao_minutos: parseInt(e.target.value) || 0,
+                                  setEditedServices({
+                                    ...editedServices,
+                                    [service.id]: {
+                                      ...editedService,
+                                      duracao_minutos: parseInt(e.target.value) || 0,
+                                    },
                                   })
                                 }
-                                className="w-full px-3 py-2 border border-neutral-300 rounded-md"
+                                className="w-full px-3 py-2 border border-neutral-300 rounded-md text-sm"
                               />
                             </div>
                             <div>
@@ -664,12 +674,15 @@ export function AdminDashboard() {
                                 step="0.01"
                                 value={Number(editedService.preco)}
                                 onChange={(e) =>
-                                  setEditedService({
-                                    ...editedService,
-                                    preco: parseFloat(e.target.value) || 0,
+                                  setEditedServices({
+                                    ...editedServices,
+                                    [service.id]: {
+                                      ...editedService,
+                                      preco: parseFloat(e.target.value) || 0,
+                                    },
                                   })
                                 }
-                                className="w-full px-3 py-2 border border-neutral-300 rounded-md"
+                                className="w-full px-3 py-2 border border-neutral-300 rounded-md text-sm"
                               />
                             </div>
                           </div>
@@ -678,7 +691,10 @@ export function AdminDashboard() {
                               type="checkbox"
                               checked={editedService.ativo}
                               onChange={(e) =>
-                                setEditedService({ ...editedService, ativo: e.target.checked })
+                                setEditedServices({
+                                  ...editedServices,
+                                  [service.id]: { ...editedService, ativo: e.target.checked },
+                                })
                               }
                               className="rounded"
                             />
@@ -686,7 +702,7 @@ export function AdminDashboard() {
                           </div>
                           <div className="flex gap-2">
                             <button
-                              onClick={() => handleSaveService(editedService)}
+                              onClick={() => handleSaveService(service.id)}
                               className="px-4 py-2 bg-gold-500 text-neutral-900 rounded-md font-semibold hover:bg-gold-400 transition-colors flex items-center gap-2"
                             >
                               <Save className="h-4 w-4" />
@@ -695,7 +711,9 @@ export function AdminDashboard() {
                             <button
                               onClick={() => {
                                 setEditingServiceId(null);
-                                setEditedService(null);
+                                const newEditedServices = { ...editedServices };
+                                delete newEditedServices[service.id];
+                                setEditedServices(newEditedServices);
                               }}
                               className="px-4 py-2 bg-neutral-200 text-neutral-700 rounded-md font-semibold hover:bg-neutral-300 transition-colors"
                             >
@@ -729,7 +747,10 @@ export function AdminDashboard() {
                           <button
                             onClick={() => {
                               setEditingServiceId(service.id);
-                              setEditedService({ ...service });
+                              setEditedServices({
+                                ...editedServices,
+                                [service.id]: { ...service },
+                              });
                             }}
                             className="p-2 text-gold-500 hover:bg-gold-50 rounded transition-colors"
                           >
