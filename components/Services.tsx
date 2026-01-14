@@ -1,49 +1,46 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Scissors, Sparkles, Clock } from "lucide-react";
+import { getServicos, type Service } from "@/lib/supabase/services";
 
-interface Service {
-  id: string;
-  nome: string;
-  descricao: string;
-  duracao_minutos: number;
-  preco: number;
-  icon: React.ReactNode;
-}
-
-const services: Service[] = [
-  {
-    id: "1",
-    nome: "Completo (Corte, Barba, Sobrancelhas)",
-    descricao: "Todos os serviços oferecidos na barbearia em um único pacote completo.",
-    duracao_minutos: 80,
-    preco: 78,
-    icon: <Sparkles className="h-12 w-12 text-gold-500" />,
-  },
-  {
-    id: "2",
-    nome: "Corte de cabelo",
-    descricao: "Corte profissional que traz mais confiança e melhora sua imagem pessoal.",
-    duracao_minutos: 40,
-    preco: 40,
-    icon: <Scissors className="h-12 w-12 text-gold-500" />,
-  },
-  {
-    id: "3",
-    nome: "Barba",
-    descricao: "Serviço essencial para passar uma autoridade maior e melhor imagem pessoal.",
-    duracao_minutos: 30,
-    preco: 35,
-    icon: <Clock className="h-12 w-12 text-gold-500" />,
-  },
-];
+const iconMap: Record<string, React.ReactNode> = {
+  "1": <Sparkles className="h-12 w-12 text-gold-500" />,
+  "2": <Scissors className="h-12 w-12 text-gold-500" />,
+  "3": <Clock className="h-12 w-12 text-gold-500" />,
+};
 
 export function Services() {
   const router = useRouter();
+  const [services, setServices] = useState<Service[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function loadServices() {
+      const data = await getServicos();
+      // Mostrar apenas os 3 primeiros serviços na homepage
+      const homepageServices = data.slice(0, 3);
+      setServices(homepageServices);
+      setLoading(false);
+    }
+    loadServices();
+  }, []);
 
   function handleAgendar() {
     router.push("/agendar");
+  }
+
+  if (loading) {
+    return (
+      <section id="servicos" className="w-full py-20 bg-gradient-to-b from-white to-neutral-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center">
+            <p className="text-neutral-600">Carregando serviços...</p>
+          </div>
+        </div>
+      </section>
+    );
   }
 
   return (
@@ -71,7 +68,7 @@ export function Services() {
               >
                 <div className="flex flex-col items-center text-center">
                   <div className="mb-6 p-4 bg-gold-500/10 rounded-full group-hover:bg-gold-500/20 transition-colors duration-300 group-hover:scale-110 transform">
-                    {service.icon}
+                    {iconMap[service.id] || <Scissors className="h-12 w-12 text-gold-500" />}
                   </div>
                   
                   <h3 className="text-xl font-bold text-neutral-900 mb-3 group-hover:text-gold-600 transition-colors">
@@ -92,7 +89,7 @@ export function Services() {
                     <div className="flex items-center justify-between">
                       <span className="text-sm text-neutral-500">Preço</span>
                       <span className="text-2xl font-bold text-gold-600">
-                        R$ {service.preco.toFixed(2)}
+                        R$ {Number(service.preco).toFixed(2)}
                       </span>
                     </div>
                   </div>

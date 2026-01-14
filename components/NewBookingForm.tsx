@@ -7,80 +7,30 @@ import { Calendar, Clock, User, Check, AlertCircle, ChevronLeft, ChevronRight, P
 import { format, addDays, startOfWeek, addWeeks, isSameDay, getDay } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { BookingCart } from "./BookingCart";
+import { 
+  getServicos, 
+  getBarbeiros, 
+  getHorariosFuncionamento,
+  verificarDisponibilidade,
+  createAgendamento,
+  type Service as ServiceType,
+  type Barber as BarberType,
+  type HorarioFuncionamento
+} from "@/lib/supabase/services";
 
-interface Service {
-  id: string;
-  nome: string;
-  descricao: string;
-  duracao_minutos: number;
-  preco: number;
+interface Service extends ServiceType {
   precoOriginal?: number;
   desconto?: number;
   itensInclusos?: string[];
   observacoes?: string;
 }
 
-interface Barber {
-  id: string;
-  nome: string;
-}
+interface Barber extends BarberType {}
 
 interface TimeSlot {
   hora: string;
   disponivel: boolean;
 }
-
-// Serviços atualizados
-const SERVICES: Service[] = [
-  {
-    id: "1",
-    nome: "Completo (Corte, Barba, Sobrancelhas)",
-    descricao: "Destinado para quem quer fazer todos os serviços oferecidos aqui na Barbearia",
-    duracao_minutos: 80,
-    preco: 78,
-    precoOriginal: 95,
-    desconto: 18,
-    itensInclusos: [
-      "Corte de cabelo (Somente adultos e crianças acima de 5 anos) - 40 min",
-      "Barba - 30 min",
-      "Sobrancelhas - 10 min",
-    ],
-  },
-  {
-    id: "2",
-    nome: "Corte de cabelo",
-    descricao: "Um dos requisitos mais importantes em uma imagem, com toda certeza é o cabelo, pois com o cabelo, você consegue \"deixar\" de ser uma pessoa e passa a \"ser\" outra pessoa, trazendo mais confiança para si mesmo e melhorando a forma como até mesmo as pessoas enxergam você 😉 E vai por mim, com certeza é para melhor!!!",
-    duracao_minutos: 40,
-    preco: 40,
-    observacoes: "Somente adultos e crianças acima de 5 anos",
-  },
-  {
-    id: "3",
-    nome: "Barba",
-    descricao: "Este tipo de serviço não se enquadra a todos, porém para que possamos passar uma autoridade maior e uma melhor imagem, este serviço é imprescindível (para quem possui barba). E claro, para melhorar completamente não podemos esquecer que o cabelo e a barba se formam como um todo 😉",
-    duracao_minutos: 30,
-    preco: 35,
-  },
-  {
-    id: "4",
-    nome: "Sobrancelhas",
-    descricao: "Juntamente com o corte e a barba, é indispensável dar uma limpada na sobrancelha, pois muitas pessoas não sabem, porém quando estamos com as sobrancelhas muito grandes, passamos um \"ar\" de tristeza, pois com os cabelos bem aparentes no supercílios, destacam mais um semblante caído, trazendo uma tristeza no semblante, e claro ninguém quer parecer triste 😉",
-    duracao_minutos: 10,
-    preco: 20,
-  },
-  {
-    id: "5",
-    nome: "Pezinho",
-    descricao: "Aparar o pezinho para manter o corte sempre alinhado",
-    duracao_minutos: 10,
-    preco: 12,
-  },
-];
-
-// Apenas Ronnie Maganha
-const BARBERS: Barber[] = [
-  { id: "1", nome: "Ronnie Maganha" },
-];
 
 function NewBookingFormContent() {
   const router = useRouter();
@@ -112,7 +62,7 @@ function NewBookingFormContent() {
     }
   }, [status, session]);
 
-  const selectedService = SERVICES.find(s => s.id === selectedServiceId);
+  const selectedService = services.find(s => s.id === selectedServiceId);
 
   useEffect(() => {
     if (serviceIdFromUrl) {
@@ -125,36 +75,116 @@ function NewBookingFormContent() {
   }, [serviceIdFromUrl]);
 
   useEffect(() => {
-    if (selectedDate && selectedBarber) {
+    if (selectedDate && selectedBarber && selectedService && !loadingData) {
       loadTimeSlots();
     }
-  }, [selectedDate, selectedBarber]);
+  }, [selectedDate, selectedBarber, selectedService, loadingData]);
 
-  function loadTimeSlots() {
-    if (!selectedDate || !selectedBarber) return;
+  async function loadTimeSlots() {
+    if (!selectedDate || !selectedBarber || !selectedService) return;
 
     const dateStr = format(selectedDate, "yyyy-MM-dd");
-    const existing = typeof window !== "undefined" 
-      ? window.localStorage.getItem("magbarber_bookings")
-      : null;
-    const bookings = existing ? JSON.parse(existing) : [];
+    const dayOfWeek = getDay(selectedDate); // 0 = Domingo, 1 = Segunda, etc.
     
-    const bookedTimes = bookings
-      .filter((b: any) => b.data === dateStr && b.barbeiro_id === selectedBarber && b.status !== 'cancelado')
-      .map((b: any) => b.hora);
+    // Verificar se o dia está aberto
+    const horarioDia = horarios.find(h => h.dia_semana === dayOfWeek);
+    if (!horarioDia || !horarioDia.aberto) {
+      setTimeSlots([]);
+      return;
+    }
 
-    // Horários de 9:00 às 18:00, de 10 em 10 minutos
+    // Buscar agendamentos existentes do Supabase
+    const supabase = (await import("@/lib/supabase/client")).createClient();
+    const { data: bookings } = await supabase
+      .from("agendamentos")
+      .select("hora, servico_id")
+      .eq("barbeiro_id", selectedBarber)
+      .eq("data", dateStr)
+      .in("status", ["pendente", "confirmado"]);
+
+    // Buscar durações dos serviços agendados
+    const servicoIds = bookings?.map(b => b.servico_id) || [];
+    let servicosData: any[] = [];
+    if (servicoIds.length > 0) {
+      const { data } = await supabase
+        .from("servicos")
+        .select("id, duracao_minutos")
+        .in("id", servicoIds);
+      servicosData = data || [];
+    }
+
+    // Criar mapa de horários ocupados
+    const horariosOcupados = new Set<string>();
+    bookings?.forEach(booking => {
+      const servico = servicosData.find(s => s.id === booking.servico_id);
+      if (servico) {
+        const [hora, minuto] = booking.hora.split(":").map(Number);
+        const duracao = servico.duracao_minutos;
+        const inicioMinutos = hora * 60 + minuto;
+        const fimMinutos = inicioMinutos + duracao;
+        
+        // Marcar todos os slots de 10 em 10 minutos que estão ocupados
+        for (let min = inicioMinutos; min < fimMinutos; min += 10) {
+          const h = Math.floor(min / 60);
+          const m = min % 60;
+          horariosOcupados.add(`${h.toString().padStart(2, "0")}:${m.toString().padStart(2, "0")}`);
+        }
+      }
+    });
+
+    // Gerar slots baseados nos horários de funcionamento
     const slots: TimeSlot[] = [];
-    for (let hour = 9; hour < 18; hour++) {
-      for (let minute = 0; minute < 60; minute += 10) {
-        const timeStr = `${hour.toString().padStart(2, "0")}:${minute.toString().padStart(2, "0")}`;
-        slots.push({
-          hora: timeStr,
-          disponivel: !bookedTimes.includes(timeStr),
-        });
+    const horariosManha = horarioDia.horario_manha_inicio && horarioDia.horario_manha_fim
+      ? gerarSlotsEntreHorarios(horarioDia.horario_manha_inicio, horarioDia.horario_manha_fim)
+      : [];
+    const horariosTarde = horarioDia.horario_tarde_inicio && horarioDia.horario_tarde_fim
+      ? gerarSlotsEntreHorarios(horarioDia.horario_tarde_inicio, horarioDia.horario_tarde_fim)
+      : [];
+    
+    const todosHorarios = [...horariosManha, ...horariosTarde];
+    
+    todosHorarios.forEach(hora => {
+      // Verificar se o horário não conflita com agendamentos existentes
+      const conflito = Array.from(horariosOcupados).some(ocupado => {
+        const [hOcupado, mOcupado] = ocupado.split(":").map(Number);
+        const [hSlot, mSlot] = hora.split(":").map(Number);
+        const ocupadoMinutos = hOcupado * 60 + mOcupado;
+        const slotMinutos = hSlot * 60 + mSlot;
+        const duracaoServico = selectedService.duracao_minutos;
+        
+        // Verificar sobreposição
+        return (slotMinutos >= ocupadoMinutos && slotMinutos < ocupadoMinutos + 60) ||
+               (slotMinutos + duracaoServico > ocupadoMinutos && slotMinutos + duracaoServico <= ocupadoMinutos + 60) ||
+               (slotMinutos <= ocupadoMinutos && slotMinutos + duracaoServico >= ocupadoMinutos + 60);
+      });
+      
+      slots.push({
+        hora,
+        disponivel: !conflito && !horariosOcupados.has(hora),
+      });
+    });
+    
+    setTimeSlots(slots);
+  }
+
+  function gerarSlotsEntreHorarios(inicio: string, fim: string): string[] {
+    const slots: string[] = [];
+    const [hInicio, mInicio] = inicio.split(":").map(Number);
+    const [hFim, mFim] = fim.split(":").map(Number);
+    
+    let horaAtual = hInicio;
+    let minutoAtual = mInicio;
+    
+    while (horaAtual < hFim || (horaAtual === hFim && minutoAtual < mFim)) {
+      slots.push(`${horaAtual.toString().padStart(2, "0")}:${minutoAtual.toString().padStart(2, "0")}`);
+      minutoAtual += 10;
+      if (minutoAtual >= 60) {
+        minutoAtual = 0;
+        horaAtual++;
       }
     }
-    setTimeSlots(slots);
+    
+    return slots;
   }
 
   function handleNext() {
@@ -174,7 +204,7 @@ function NewBookingFormContent() {
   }
 
   async function handleSubmit() {
-    if (!selectedServiceId || !selectedBarber || !selectedDate || !selectedTime) {
+    if (!selectedServiceId || !selectedBarber || !selectedDate || !selectedTime || !selectedService) {
       return;
     }
 
@@ -190,31 +220,45 @@ function NewBookingFormContent() {
 
     setLoading(true);
 
-    const booking = {
-      id: crypto.randomUUID(),
-      usuario_id: session.user.email || session.user.name || "",
-      usuario_email: session.user.email || "",
-      usuario_nome: session.user.name || session.user.email || "",
-      data: format(selectedDate, "yyyy-MM-dd"),
-      hora: selectedTime,
-      status: "pendente",
-      servico_id: selectedServiceId,
-      barbeiro_id: selectedBarber,
-      created_at: new Date().toISOString(),
-    };
+    try {
+      // Verificar disponibilidade antes de criar
+      const disponivel = await verificarDisponibilidade(
+        selectedBarber,
+        format(selectedDate, "yyyy-MM-dd"),
+        selectedTime,
+        selectedService.duracao_minutos
+      );
 
-    const existing = typeof window !== "undefined"
-      ? window.localStorage.getItem("magbarber_bookings")
-      : null;
-    const parsed = existing ? JSON.parse(existing) : [];
-    const updated = [...parsed, booking];
+      if (!disponivel) {
+        alert("Este horário não está mais disponível. Por favor, escolha outro horário.");
+        setLoading(false);
+        loadTimeSlots(); // Recarregar slots
+        return;
+      }
 
-    if (typeof window !== "undefined") {
-      window.localStorage.setItem("magbarber_bookings", JSON.stringify(updated));
+      // Criar agendamento no Supabase
+      const booking = await createAgendamento({
+        usuario_id: session.user.email || session.user.name || "",
+        usuario_email: session.user.email || "",
+        usuario_nome: session.user.name || session.user.email || "",
+        data: format(selectedDate, "yyyy-MM-dd"),
+        hora: selectedTime,
+        status: "pendente",
+        servico_id: selectedServiceId,
+        barbeiro_id: selectedBarber,
+      });
+
+      if (booking) {
+        router.push(`/agendar/confirmacao?id=${booking.id}`);
+      } else {
+        alert("Erro ao criar agendamento. Tente novamente.");
+        setLoading(false);
+      }
+    } catch (error: any) {
+      console.error("Erro ao criar agendamento:", error);
+      alert(error.message || "Erro ao criar agendamento. Tente novamente.");
+      setLoading(false);
     }
-
-    setLoading(false);
-    router.push(`/agendar/confirmacao?id=${booking.id}`);
   }
 
   // Gerar dias da semana atual
@@ -223,8 +267,22 @@ function NewBookingFormContent() {
     weekDays.push(addDays(currentWeekStart, i));
   }
 
-  // Filtrar apenas dias úteis (segunda a sábado)
-  const availableDays = weekDays.filter(date => getDay(date) !== 0);
+  // Filtrar apenas dias que estão abertos conforme horários de funcionamento
+  const availableDays = weekDays.filter(date => {
+    const dayOfWeek = getDay(date); // 0 = Domingo, 1 = Segunda, etc.
+    const horarioDia = horarios.find(h => h.dia_semana === dayOfWeek);
+    return horarioDia?.aberto || false;
+  });
+
+  if (loadingData) {
+    return (
+      <div className="w-full min-h-screen flex items-center justify-center bg-white">
+        <div className="text-center">
+          <p className="text-neutral-600">Carregando...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full">
@@ -267,7 +325,7 @@ function NewBookingFormContent() {
               <h2 className="text-2xl font-bold text-neutral-900 mb-2">Serviços</h2>
               <p className="text-neutral-600 mb-6">Barbering</p>
               <div className="space-y-4">
-                {SERVICES.map((service) => {
+                {services.map((service) => {
                   const isSelected = selectedServiceId === service.id;
                   const formatDuration = (minutes: number): string => {
                     if (minutes >= 60) {
@@ -315,23 +373,23 @@ function NewBookingFormContent() {
                           <p className="text-sm text-neutral-600 mb-3 line-clamp-2">
                             {service.descricao}
                           </p>
-                          <div className="flex items-center gap-3">
-                            <span className="text-xl font-bold text-neutral-900">
-                              R$ {service.preco.toFixed(2)}
-                            </span>
-                            {service.precoOriginal && (
-                              <>
-                                <span className="text-sm text-neutral-400 line-through">
-                                  R$ {service.precoOriginal.toFixed(2)}
-                                </span>
-                                {service.desconto && (
-                                  <span className="text-sm font-semibold text-green-600">
-                                    Economize {service.desconto}%
+                            <div className="flex items-center gap-3">
+                              <span className="text-xl font-bold text-neutral-900">
+                                R$ {Number(service.preco).toFixed(2)}
+                              </span>
+                              {service.precoOriginal && (
+                                <>
+                                  <span className="text-sm text-neutral-400 line-through">
+                                    R$ {Number(service.precoOriginal).toFixed(2)}
                                   </span>
-                                )}
-                              </>
-                            )}
-                          </div>
+                                  {service.desconto && (
+                                    <span className="text-sm font-semibold text-green-600">
+                                      Economize {service.desconto}%
+                                    </span>
+                                  )}
+                                </>
+                              )}
+                            </div>
                         </div>
                         <div className="ml-4">
                           {isSelected ? (
@@ -353,7 +411,7 @@ function NewBookingFormContent() {
             <div>
               <h2 className="text-2xl font-bold text-neutral-900 mb-6">Selecionar profissional</h2>
               <div className="space-y-4">
-                {BARBERS.map((barber) => (
+                {barbers.map((barber) => (
                   <button
                     key={barber.id}
                     onClick={() => {
@@ -545,7 +603,7 @@ function NewBookingFormContent() {
           <div className="lg:w-96">
             <BookingCart
               service={selectedService}
-              barberName={BARBERS.find(b => b.id === selectedBarber)?.nome || "Ronnie Maganha"}
+              barberName={barbers.find(b => b.id === selectedBarber)?.nome || "Ronnie Maganha"}
             />
           </div>
         )}

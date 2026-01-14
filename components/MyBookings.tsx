@@ -6,36 +6,15 @@ import { useSession } from "next-auth/react";
 import { Calendar, Clock, Scissors, User, CheckCircle, X, AlertCircle } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-
-interface Booking {
-  id: string;
-  data: string;
-  hora: string;
-  status: string;
-  servico_id: string;
-  barbeiro_id: string;
-  usuario_id?: string;
-  usuario_email?: string;
-  usuario_nome?: string;
-}
-
-const SERVICE_LABELS: Record<string, string> = {
-  "1": "Completo (Corte, Barba, Sobrancelhas)",
-  "2": "Corte de cabelo",
-  "3": "Barba",
-  "4": "Sobrancelhas",
-  "5": "Pezinho",
-};
-
-const BARBER_LABELS: Record<string, string> = {
-  "1": "Ronnie Maganha",
-};
+import { getAgendamentosUsuario, updateAgendamentoStatus, getServicos, getBarbeiros, type Booking, type Service, type Barber } from "@/lib/supabase/services";
 
 function MyBookingsContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { data: session, status } = useSession();
   const [bookings, setBookings] = useState<Booking[]>([]);
+  const [services, setServices] = useState<Service[]>([]);
+  const [barbers, setBarbers] = useState<Barber[]>([]);
   const [loading, setLoading] = useState(true);
   const [cancellingId, setCancellingId] = useState<string | null>(null);
 
@@ -47,8 +26,8 @@ function MyBookingsContent() {
       return;
     }
 
-    if (session) {
-      loadBookings();
+    if (session?.user?.email) {
+      loadData();
     }
 
     if (searchParams.get("success") === "true") {
@@ -58,60 +37,54 @@ function MyBookingsContent() {
     }
   }, [status, session, router, searchParams]);
 
-  function loadBookings() {
-    if (typeof window === "undefined" || !session?.user?.email) return;
+  async function loadData() {
+    if (!session?.user?.email) return;
 
-    const stored = window.localStorage.getItem("magbarber_bookings");
-    const parsed: Booking[] = stored ? JSON.parse(stored) : [];
+    try {
+      const [bookingsData, servicesData, barbersData] = await Promise.all([
+        getAgendamentosUsuario(session.user.email),
+        getServicos(),
+        getBarbeiros(),
+      ]);
 
-    // Filtrar apenas agendamentos do usuário logado (por email ou ID)
-    const userEmail = session.user.email;
-    const userId = session.user.email || session.user.name || "";
-    
-    const userBookings = parsed.filter(
-      (b) => b.usuario_email === userEmail || b.usuario_id === userId
-    );
-
-    // Manter apenas agendamentos futuros ou pendentes/confirmados
-    const todayStr = new Date().toISOString().split("T")[0];
-    const future = userBookings.filter(
-      (b) => b.data >= todayStr || b.status === "pendente" || b.status === "confirmado"
-    );
-
-    // Ordenar por data e hora
-    future.sort((a, b) => {
-      if (a.data === b.data) {
-        return a.hora.localeCompare(b.hora);
-      }
-      return a.data.localeCompare(b.data);
-    });
-
-    setBookings(future);
-    setLoading(false);
+      setBookings(bookingsData);
+      setServices(servicesData);
+      setBarbers(barbersData);
+      setLoading(false);
+    } catch (error) {
+      console.error("Erro ao carregar dados:", error);
+      setLoading(false);
+    }
   }
 
-  function handleCancel(bookingId: string) {
+  async function handleCancel(bookingId: string) {
     if (!confirm("Tem certeza que deseja cancelar este agendamento?")) {
       return;
     }
 
     setCancellingId(bookingId);
 
-    if (typeof window === "undefined") return;
-
-    const stored = window.localStorage.getItem("magbarber_bookings");
-    const parsed: Booking[] = stored ? JSON.parse(stored) : [];
-
-    const updated = parsed.map((b) =>
-      b.id === bookingId ? { ...b, status: "cancelado" } : b
-    );
-
-    window.localStorage.setItem("magbarber_bookings", JSON.stringify(updated));
-    
-    setTimeout(() => {
-      loadBookings();
+    try {
+      const success = await updateAgendamentoStatus(bookingId, "cancelado");
+      if (success) {
+        await loadData();
+      } else {
+        alert("Erro ao cancelar agendamento. Tente novamente.");
+      }
+    } catch (error) {
+      console.error("Erro ao cancelar agendamento:", error);
+      alert("Erro ao cancelar agendamento. Tente novamente.");
+    } finally {
       setCancellingId(null);
-    }, 300);
+    }
+  }
+
+  function getServiceName(serviceId: string): string {
+    return services.find(s => s.id === serviceId)?.nome || "Serviço";
+  }
+
+  function getBarberName(barberId: string): string {
+    return barbers.find(b => b.id === barberId)?.nome || "Barbeiro";
   }
 
   function getStatusColor(status: string) {
@@ -194,11 +167,11 @@ function MyBookingsContent() {
                 </div>
                 <div className="flex items-center gap-2 text-neutral-700">
                   <Scissors className="h-5 w-5 text-neutral-500" />
-                  <span>{SERVICE_LABELS[booking.servico_id] ?? "Serviço"}</span>
-                </div>
-                <div className="flex items-center gap-2 text-neutral-700">
-                  <User className="h-5 w-5 text-neutral-500" />
-                  <span>{BARBER_LABELS[booking.barbeiro_id] ?? "Barbeiro"}</span>
+                    <span>{getServiceName(booking.servico_id)}</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-neutral-700">
+                    <User className="h-5 w-5 text-neutral-500" />
+                    <span>{getBarberName(booking.barbeiro_id)}</span>
                 </div>
               </div>
               
