@@ -6,6 +6,7 @@ import { CheckCircle, Calendar, Clock, User, Scissors, AlertCircle } from "lucid
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import Link from "next/link";
+import { createClient } from "@/lib/supabase/client";
 
 interface Booking {
   id: string;
@@ -19,44 +20,79 @@ interface Booking {
   barbeiro_id: string;
 }
 
-const SERVICE_LABELS: Record<string, string> = {
-  "1": "Completo (Corte, Barba, Sobrancelhas)",
-  "2": "Corte de cabelo",
-  "3": "Barba",
-  "4": "Sobrancelhas",
-  "5": "Pezinho",
-};
+interface Service {
+  id: string;
+  nome: string;
+}
 
-const BARBER_LABELS: Record<string, string> = {
-  "1": "Ronnie Maganha",
-};
+interface Barber {
+  id: string;
+  nome: string;
+}
 
 function ConfirmacaoPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const bookingId = searchParams.get("id");
   const [booking, setBooking] = useState<Booking | null>(null);
+  const [service, setService] = useState<Service | null>(null);
+  const [barber, setBarber] = useState<Barber | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!bookingId) {
-      router.push("/agendar");
-      return;
-    }
+    async function loadBooking() {
+      if (!bookingId) {
+        router.push("/agendar");
+        return;
+      }
 
-    // Buscar agendamento do localStorage
-    const stored = typeof window !== "undefined"
-      ? window.localStorage.getItem("magbarber_bookings")
-      : null;
-    
-    if (stored) {
-      const bookings: Booking[] = JSON.parse(stored);
-      const found = bookings.find(b => b.id === bookingId);
-      if (found) {
-        setBooking(found);
+      try {
+        const supabase = createClient();
+        
+        // Buscar agendamento do Supabase
+        const { data: bookingData, error: bookingError } = await supabase
+          .from("agendamentos")
+          .select("*")
+          .eq("id", bookingId)
+          .single();
+
+        if (bookingError || !bookingData) {
+          console.error("Erro ao buscar agendamento:", bookingError);
+          setLoading(false);
+          return;
+        }
+
+        setBooking(bookingData);
+
+        // Buscar informações do serviço
+        const { data: serviceData } = await supabase
+          .from("servicos")
+          .select("id, nome")
+          .eq("id", bookingData.servico_id)
+          .single();
+
+        if (serviceData) {
+          setService(serviceData);
+        }
+
+        // Buscar informações do barbeiro
+        const { data: barberData } = await supabase
+          .from("barbeiros")
+          .select("id, nome")
+          .eq("id", bookingData.barbeiro_id)
+          .single();
+
+        if (barberData) {
+          setBarber(barberData);
+        }
+      } catch (error) {
+        console.error("Erro ao carregar dados:", error);
+      } finally {
+        setLoading(false);
       }
     }
-    setLoading(false);
+
+    loadBooking();
   }, [bookingId, router]);
 
   if (loading) {
@@ -81,8 +117,8 @@ function ConfirmacaoPageContent() {
   }
 
   const bookingDate = new Date(booking.data + "T00:00:00");
-  const serviceName = SERVICE_LABELS[booking.servico_id] || "Serviço";
-  const barberName = BARBER_LABELS[booking.barbeiro_id] || "Barbeiro";
+  const serviceName = service?.nome || "Serviço";
+  const barberName = barber?.nome || "Barbeiro";
 
   return (
     <div className="w-full min-h-screen py-12 bg-white">
