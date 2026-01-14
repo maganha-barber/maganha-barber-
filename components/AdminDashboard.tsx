@@ -120,7 +120,10 @@ export function AdminDashboard() {
     }
   }
 
-  async function handleSaveService(service: Service) {
+  async function handleSaveService(serviceId: string) {
+    const service = editedServices[serviceId];
+    if (!service) return;
+
     try {
       const success = await updateServico({
         id: service.id,
@@ -137,6 +140,9 @@ export function AdminDashboard() {
       });
       if (success) {
         setEditingServiceId(null);
+        const newEditedServices = { ...editedServices };
+        delete newEditedServices[serviceId];
+        setEditedServices(newEditedServices);
         await loadData();
         alert("Serviço atualizado com sucesso!");
       }
@@ -146,7 +152,10 @@ export function AdminDashboard() {
     }
   }
 
-  async function handleSaveHorario(horario: HorarioFuncionamento) {
+  async function handleSaveHorario(diaSemana: number) {
+    const horario = editedHorarios[diaSemana];
+    if (!horario) return;
+
     try {
       const success = await updateHorarioFuncionamento({
         dia_semana: horario.dia_semana,
@@ -158,6 +167,9 @@ export function AdminDashboard() {
       });
       if (success) {
         setEditingHorarioId(null);
+        const newEditedHorarios = { ...editedHorarios };
+        delete newEditedHorarios[diaSemana];
+        setEditedHorarios(newEditedHorarios);
         await loadData();
         alert("Horário atualizado com sucesso!");
       }
@@ -878,7 +890,10 @@ export function AdminDashboard() {
                           <button
                             onClick={() => {
                               setEditingHorarioId(horario.dia_semana);
-                              setEditedHorario({ ...horario });
+                              setEditedHorarios({
+                                ...editedHorarios,
+                                [horario.dia_semana]: { ...horario },
+                              });
                             }}
                             className="p-2 text-gold-500 hover:bg-gold-50 rounded transition-colors"
                           >
