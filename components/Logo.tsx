@@ -43,13 +43,14 @@ export function Logo({ className = "h-10 w-10" }: { className?: string }) {
             fill="none"
             strokeLinecap="round"
           />
-          {/* Alça */}
+          {/* Alça com listras alternadas (preto e branco) */}
           <rect x="-22" y="-7" width="8" height="14" fill="#FFFFFF"/>
-          {/* Detalhes horizontais na alça */}
-          <line x1="-20" y1="-5" x2="-14" y2="-5" stroke="#000000" strokeWidth="0.8"/>
-          <line x1="-20" y1="-1" x2="-14" y2="-1" stroke="#000000" strokeWidth="0.8"/>
-          <line x1="-20" y1="3" x2="-14" y2="3" stroke="#000000" strokeWidth="0.8"/>
-          <line x1="-20" y1="7" x2="-14" y2="7" stroke="#000000" strokeWidth="0.8"/>
+          {/* Listras horizontais na alça (alternando preto e branco) */}
+          <rect x="-22" y="-7" width="8" height="2" fill="#000000"/>
+          <rect x="-22" y="-3" width="8" height="2" fill="#FFFFFF"/>
+          <rect x="-22" y="1" width="8" height="2" fill="#000000"/>
+          <rect x="-22" y="5" width="8" height="2" fill="#FFFFFF"/>
+          <rect x="-22" y="9" width="8" height="2" fill="#000000"/>
         </g>
         
         {/* Navalha direita */}
@@ -62,13 +63,14 @@ export function Logo({ className = "h-10 w-10" }: { className?: string }) {
             fill="none"
             strokeLinecap="round"
           />
-          {/* Alça */}
+          {/* Alça com listras alternadas (preto e branco) */}
           <rect x="14" y="-7" width="8" height="14" fill="#FFFFFF"/>
-          {/* Detalhes horizontais na alça */}
-          <line x1="16" y1="-5" x2="20" y2="-5" stroke="#000000" strokeWidth="0.8"/>
-          <line x1="16" y1="-1" x2="20" y2="-1" stroke="#000000" strokeWidth="0.8"/>
-          <line x1="16" y1="3" x2="20" y2="3" stroke="#000000" strokeWidth="0.8"/>
-          <line x1="16" y1="7" x2="20" y2="7" stroke="#000000" strokeWidth="0.8"/>
+          {/* Listras horizontais na alça (alternando preto e branco) */}
+          <rect x="14" y="-7" width="8" height="2" fill="#000000"/>
+          <rect x="14" y="-3" width="8" height="2" fill="#FFFFFF"/>
+          <rect x="14" y="1" width="8" height="2" fill="#000000"/>
+          <rect x="14" y="5" width="8" height="2" fill="#FFFFFF"/>
+          <rect x="14" y="9" width="8" height="2" fill="#000000"/>
         </g>
       </g>
       

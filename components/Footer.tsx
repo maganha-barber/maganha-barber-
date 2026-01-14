@@ -77,27 +77,48 @@ export function Footer() {
               Horários de funcionamento
             </h3>
             <ul className="space-y-2">
-              {horarios.map((item, index) => (
-                <li key={index} className="text-neutral-300 text-sm">
-                  <div className="flex items-start gap-2">
-                    <Clock className={`h-4 w-4 mt-0.5 flex-shrink-0 ${
-                      item.aberto === false ? "text-neutral-600" : "text-gold-400"
-                    }`} />
-                    <div>
-                      <span className="font-medium capitalize">{item.dia}</span>
-                      {item.aberto === false ? (
-                        <p className="text-neutral-500">Fechado</p>
-                      ) : (
-                        <div className="space-y-1">
-                          {item.horarios?.map((horario, idx) => (
-                            <p key={idx} className="text-neutral-300">{horario}</p>
-                          ))}
-                        </div>
-                      )}
+              <li className="text-neutral-300 text-sm">
+                <div className="flex items-start gap-2">
+                  <Clock className="h-4 w-4 mt-0.5 flex-shrink-0 text-neutral-600" />
+                  <div>
+                    <span className="font-medium capitalize">segunda-feira</span>
+                    <p className="text-neutral-500">Fechado</p>
+                  </div>
+                </div>
+              </li>
+              <li className="text-neutral-300 text-sm">
+                <div className="flex items-start gap-2">
+                  <Clock className="h-4 w-4 mt-0.5 flex-shrink-0 text-gold-400" />
+                  <div>
+                    <span className="font-medium">Terça a Sexta</span>
+                    <div className="space-y-1">
+                      <p className="text-neutral-300">09:00 - 12:00</p>
+                      <p className="text-neutral-300">14:00 - 19:00</p>
                     </div>
                   </div>
-                </li>
-              ))}
+                </div>
+              </li>
+              <li className="text-neutral-300 text-sm">
+                <div className="flex items-start gap-2">
+                  <Clock className="h-4 w-4 mt-0.5 flex-shrink-0 text-gold-400" />
+                  <div>
+                    <span className="font-medium capitalize">sábado</span>
+                    <div className="space-y-1">
+                      <p className="text-neutral-300">09:00 - 12:00</p>
+                      <p className="text-neutral-300">13:00 - 19:00</p>
+                    </div>
+                  </div>
+                </div>
+              </li>
+              <li className="text-neutral-300 text-sm">
+                <div className="flex items-start gap-2">
+                  <Clock className="h-4 w-4 mt-0.5 flex-shrink-0 text-neutral-600" />
+                  <div>
+                    <span className="font-medium capitalize">domingo</span>
+                    <p className="text-neutral-500">Fechado</p>
+                  </div>
+                </div>
+              </li>
             </ul>
           </div>
         </div>

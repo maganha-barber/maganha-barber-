@@ -1,10 +1,10 @@
 # Configuração do Google OAuth
 
-## Erro: redirect_uri_mismatch
+## ⚠️ Erro: redirect_uri_mismatch
 
 Este erro ocorre quando o `redirect_uri` enviado ao Google não corresponde **exatamente** ao que está configurado no Google Cloud Console.
 
-## Como corrigir:
+## 🔧 Como corrigir:
 
 ### 1. Acesse o Google Cloud Console
 - Vá para: https://console.cloud.google.com/
@@ -26,7 +26,7 @@ http://localhost:3000/auth/callback
 https://maganha-barber-2756.vercel.app/auth/callback
 ```
 
-**IMPORTANTE:**
+**⚠️ IMPORTANTE:**
 - ✅ Use `https://` (não `http://`) em produção
 - ✅ Não adicione trailing slash (`/`) no final
 - ✅ Não adicione query parameters (`?redirect=...`)
@@ -35,7 +35,7 @@ https://maganha-barber-2756.vercel.app/auth/callback
 
 ### 4. Verifique o domínio na Vercel
 
-1. Acesse seu projeto na Vercel
+1. Acesse seu projeto na Vercel: https://vercel.com/dashboard
 2. Vá em Settings → Domains
 3. Copie o domínio exato (ex: `maganha-barber-2756.vercel.app`)
 4. Use esse domínio EXATO no Google Cloud Console
@@ -46,6 +46,12 @@ https://maganha-barber-2756.vercel.app/auth/callback
 Authorized redirect URIs:
 https://maganha-barber-2756.vercel.app/auth/callback
 http://localhost:3000/auth/callback
+```
+
+**Authorized JavaScript origins:**
+```
+https://maganha-barber-2756.vercel.app
+http://localhost:3000
 ```
 
 ### 6. Após adicionar, aguarde alguns minutos
@@ -62,16 +68,17 @@ GOOGLE_CLIENT_SECRET=seu-client-secret-aqui
 NEXT_PUBLIC_GOOGLE_CLIENT_ID=seu-client-id-aqui (opcional, para uso no cliente)
 ```
 
-## Debug
+## 🔍 Debug
 
 Se ainda estiver com problemas, verifique:
 
-1. O domínio está correto? (sem `www`, sem porta, sem trailing slash)
-2. Está usando `https://` em produção?
-3. As variáveis de ambiente estão configuradas corretamente?
-4. Aguardou alguns minutos após adicionar a URI?
+1. ✅ O domínio está correto? (sem `www`, sem porta, sem trailing slash)
+2. ✅ Está usando `https://` em produção?
+3. ✅ As variáveis de ambiente estão configuradas corretamente?
+4. ✅ Aguardou alguns minutos após adicionar a URI?
+5. ✅ A URI no Google Cloud Console está EXATAMENTE igual à que o código está enviando?
 
-## Formato esperado do redirect_uri:
+## 📋 Formato esperado do redirect_uri:
 
 O código está enviando: `${origin}/auth/callback`
 
@@ -80,3 +87,12 @@ Onde `origin` é:
 - Produção: `https://maganha-barber-2756.vercel.app` (ou seu domínio customizado)
 
 Certifique-se de que essa URI EXATA está no Google Cloud Console.
+
+## 🚨 Checklist Final:
+
+- [ ] URI adicionada no Google Cloud Console
+- [ ] URI sem trailing slash
+- [ ] URI com `https://` em produção
+- [ ] Variáveis de ambiente configuradas na Vercel
+- [ ] Aguardou alguns minutos após configurar
+- [ ] Domínio verificado na Vercel
