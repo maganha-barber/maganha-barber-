@@ -18,6 +18,8 @@ import {
   LogOut,
   Settings,
   Save,
+  Plus,
+  Trash2,
 } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -25,7 +27,9 @@ import {
   getAllAgendamentos,
   getAllServicos,
   getHorariosFuncionamento,
+  createServico,
   updateServico,
+  deleteServico,
   updateHorarioFuncionamento,
   updateAgendamento,
   updateAgendamentoStatus,
@@ -51,8 +55,17 @@ export function AdminDashboard() {
   const [editDate, setEditDate] = useState<string>("");
   const [editTime, setEditTime] = useState<string>("");
   const [editingServiceId, setEditingServiceId] = useState<string | null>(null);
+  const [creatingService, setCreatingService] = useState(false);
   const [editingHorarioId, setEditingHorarioId] = useState<number | null>(null);
   const [editedServices, setEditedServices] = useState<Record<string, Service>>({});
+  const [newService, setNewService] = useState<Omit<Service, "id">>({
+    nome: "",
+    descricao: "",
+    duracao_minutos: 30,
+    preco: 0,
+    ativo: true,
+    ordem: 0,
+  });
   const [editedHorarios, setEditedHorarios] = useState<Record<number, HorarioFuncionamento>>({});
 
   useEffect(() => {
@@ -151,6 +164,58 @@ export function AdminDashboard() {
     } catch (error) {
       console.error("Erro ao salvar serviço:", error);
       alert("Erro ao salvar serviço.");
+    }
+  }
+
+  async function handleCreateService() {
+    if (!newService.nome || !newService.descricao || newService.preco <= 0) {
+      alert("Preencha todos os campos obrigatórios (Nome, Descrição e Preço).");
+      return;
+    }
+
+    try {
+      // Calcular ordem (último serviço + 1)
+      const maxOrdem = services.length > 0 ? Math.max(...services.map(s => s.ordem)) : 0;
+      const servicoComOrdem = { ...newService, ordem: maxOrdem + 1 };
+
+      const newId = await createServico(servicoComOrdem);
+      if (newId) {
+        setCreatingService(false);
+        setNewService({
+          nome: "",
+          descricao: "",
+          duracao_minutos: 30,
+          preco: 0,
+          ativo: true,
+          ordem: 0,
+        });
+        await loadData();
+        alert("Serviço criado com sucesso!");
+      } else {
+        alert("Erro ao criar serviço.");
+      }
+    } catch (error) {
+      console.error("Erro ao criar serviço:", error);
+      alert("Erro ao criar serviço.");
+    }
+  }
+
+  async function handleDeleteService(serviceId: string) {
+    if (!confirm("Tem certeza que deseja excluir este serviço? Esta ação não pode ser desfeita.")) {
+      return;
+    }
+
+    try {
+      const success = await deleteServico(serviceId);
+      if (success) {
+        await loadData();
+        alert("Serviço excluído com sucesso!");
+      } else {
+        alert("Erro ao excluir serviço.");
+      }
+    } catch (error) {
+      console.error("Erro ao excluir serviço:", error);
+      alert("Erro ao excluir serviço.");
     }
   }
 
@@ -602,8 +667,126 @@ export function AdminDashboard() {
         {activeTab === "servicos" && (
           <div className="bg-white border border-neutral-200 rounded-lg shadow-sm overflow-hidden">
             <div className="p-6">
-              <h2 className="text-xl font-bold text-neutral-900 mb-4">Gerenciar Serviços</h2>
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-xl font-bold text-neutral-900">Gerenciar Serviços</h2>
+                {!creatingService && (
+                  <button
+                    onClick={() => setCreatingService(true)}
+                    className="px-4 py-2 bg-gold-500 text-neutral-900 rounded-md font-semibold hover:bg-gold-400 transition-colors flex items-center gap-2"
+                  >
+                    <Plus className="h-4 w-4" />
+                    Novo Serviço
+                  </button>
+                )}
+              </div>
               <div className="space-y-4">
+                {/* Formulário de criação */}
+                {creatingService && (
+                  <div className="border-2 border-gold-500 border-dashed rounded-lg p-4 bg-gold-50">
+                    <h3 className="font-bold text-lg text-neutral-900 mb-4">Criar Novo Serviço</h3>
+                    <div className="space-y-4">
+                      <div>
+                        <label className="block text-sm font-medium text-neutral-700 mb-1">
+                          Nome *
+                        </label>
+                        <input
+                          type="text"
+                          value={newService.nome}
+                          onChange={(e) =>
+                            setNewService({ ...newService, nome: e.target.value })
+                          }
+                          className="w-full px-3 py-2 border border-neutral-300 rounded-md"
+                          placeholder="Ex: Corte de cabelo"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-neutral-700 mb-1">
+                          Descrição *
+                        </label>
+                        <textarea
+                          value={newService.descricao}
+                          onChange={(e) =>
+                            setNewService({ ...newService, descricao: e.target.value })
+                          }
+                          className="w-full px-3 py-2 border border-neutral-300 rounded-md"
+                          rows={3}
+                          placeholder="Descrição do serviço"
+                        />
+                      </div>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-sm font-medium text-neutral-700 mb-1">
+                            Duração (minutos)
+                          </label>
+                          <input
+                            type="number"
+                            value={newService.duracao_minutos}
+                            onChange={(e) =>
+                              setNewService({
+                                ...newService,
+                                duracao_minutos: parseInt(e.target.value) || 30,
+                              })
+                            }
+                            className="w-full px-3 py-2 border border-neutral-300 rounded-md text-sm"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-neutral-700 mb-1">
+                            Preço (R$) *
+                          </label>
+                          <input
+                            type="number"
+                            step="0.01"
+                            value={newService.preco}
+                            onChange={(e) =>
+                              setNewService({
+                                ...newService,
+                                preco: parseFloat(e.target.value) || 0,
+                              })
+                            }
+                            className="w-full px-3 py-2 border border-neutral-300 rounded-md text-sm"
+                          />
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="checkbox"
+                          checked={newService.ativo}
+                          onChange={(e) =>
+                            setNewService({ ...newService, ativo: e.target.checked })
+                          }
+                          className="rounded"
+                        />
+                        <label className="text-sm text-neutral-700">Ativo</label>
+                      </div>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={handleCreateService}
+                          className="px-4 py-2 bg-gold-500 text-neutral-900 rounded-md font-semibold hover:bg-gold-400 transition-colors flex items-center gap-2"
+                        >
+                          <Save className="h-4 w-4" />
+                          Criar Serviço
+                        </button>
+                        <button
+                          onClick={() => {
+                            setCreatingService(false);
+                            setNewService({
+                              nome: "",
+                              descricao: "",
+                              duracao_minutos: 30,
+                              preco: 0,
+                              ativo: true,
+                              ordem: 0,
+                            });
+                          }}
+                          className="px-4 py-2 bg-neutral-200 text-neutral-700 rounded-md font-semibold hover:bg-neutral-300 transition-colors"
+                        >
+                          Cancelar
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
                 {services.map((service) => {
                   const isEditing = editingServiceId === service.id;
                   const editedService = editedServices[service.id] || service;
@@ -746,18 +929,28 @@ export function AdminDashboard() {
                               </span>
                             </div>
                           </div>
-                          <button
-                            onClick={() => {
-                              setEditingServiceId(service.id);
-                              setEditedServices({
-                                ...editedServices,
-                                [service.id]: { ...service },
-                              });
-                            }}
-                            className="p-2 text-gold-500 hover:bg-gold-50 rounded transition-colors"
-                          >
-                            <Edit className="h-5 w-5" />
-                          </button>
+                          <div className="flex items-center gap-2">
+                            <button
+                              onClick={() => {
+                                setEditingServiceId(service.id);
+                                setEditedServices({
+                                  ...editedServices,
+                                  [service.id]: { ...service },
+                                });
+                              }}
+                              className="p-2 text-gold-500 hover:bg-gold-50 rounded transition-colors"
+                              title="Editar serviço"
+                            >
+                              <Edit className="h-5 w-5" />
+                            </button>
+                            <button
+                              onClick={() => handleDeleteService(service.id)}
+                              className="p-2 text-red-500 hover:bg-red-50 rounded transition-colors"
+                              title="Excluir serviço"
+                            >
+                              <Trash2 className="h-5 w-5" />
+                            </button>
+                          </div>
                         </div>
                       )}
                     </div>

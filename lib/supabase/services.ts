@@ -79,6 +79,34 @@ export async function getAllServicos(): Promise<Service[]> {
   return data || [];
 }
 
+// Criar novo serviço (admin)
+export async function createServico(servico: Omit<Service, "id">): Promise<string | null> {
+  const supabase = createClient();
+  const { data, error } = await supabase
+    .from("servicos")
+    .insert({
+      nome: servico.nome,
+      descricao: servico.descricao,
+      duracao_minutos: servico.duracao_minutos,
+      preco: servico.preco,
+      preco_original: servico.preco_original,
+      desconto: servico.desconto,
+      itens_inclusos: servico.itens_inclusos,
+      observacoes: servico.observacoes,
+      ativo: servico.ativo,
+      ordem: servico.ordem,
+    })
+    .select("id")
+    .single();
+
+  if (error) {
+    console.error("Erro ao criar serviço:", error);
+    return null;
+  }
+
+  return data?.id || null;
+}
+
 // Atualizar serviço (admin)
 export async function updateServico(servico: Partial<Service> & { id: string }): Promise<boolean> {
   const supabase = createClient();
@@ -100,6 +128,22 @@ export async function updateServico(servico: Partial<Service> & { id: string }):
 
   if (error) {
     console.error("Erro ao atualizar serviço:", error);
+    return false;
+  }
+
+  return true;
+}
+
+// Excluir serviço (admin)
+export async function deleteServico(servicoId: string): Promise<boolean> {
+  const supabase = createClient();
+  const { error } = await supabase
+    .from("servicos")
+    .delete()
+    .eq("id", servicoId);
+
+  if (error) {
+    console.error("Erro ao excluir serviço:", error);
     return false;
   }
 
