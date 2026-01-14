@@ -17,12 +17,20 @@ export function About() {
             </p>
             
             {/* Estatísticas */}
-            <div className="grid grid-cols-1 sm:grid-cols-1 gap-6">
+            <div className="grid grid-cols-2 gap-6 mt-8">
               <div>
-                <p className="text-3xl md:text-4xl font-bold text-gold-400 mb-2">
+                <p className="text-4xl md:text-5xl font-bold text-gold-400 mb-2">
+                  +500
+                </p>
+                <p className="text-neutral-300 text-xs md:text-sm uppercase tracking-wider">
+                  Cliente satisfeitos
+                </p>
+              </div>
+              <div>
+                <p className="text-4xl md:text-5xl font-bold text-gold-400 mb-2">
                   +5 anos
                 </p>
-                <p className="text-neutral-300 text-sm">
+                <p className="text-neutral-300 text-xs md:text-sm uppercase tracking-wider">
                   Salvando vidas
                 </p>
               </div>
@@ -31,8 +39,8 @@ export function About() {
 
           {/* Coluna Direita - Logo */}
           <div className="flex items-center justify-center">
-            <div className="w-full max-w-md">
-              <Logo className="h-64 w-64" />
+            <div className="w-full max-w-sm md:max-w-md">
+              <Logo className="h-80 w-80 md:h-96 md:w-96 mx-auto" />
             </div>
           </div>
         </div>
