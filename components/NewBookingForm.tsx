@@ -85,7 +85,7 @@ const BARBERS: Barber[] = [
 function NewBookingFormContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   
   // Pegar serviço da URL ou estado
   const serviceIdFromUrl = searchParams.get("servico");
@@ -102,6 +102,15 @@ function NewBookingFormContent() {
   const [loading, setLoading] = useState(false);
   const [showAuthPrompt, setShowAuthPrompt] = useState(false);
   const [currentWeekStart, setCurrentWeekStart] = useState(startOfWeek(new Date(), { weekStartsOn: 1 }));
+
+  // Atualizar showAuthPrompt baseado no status da sessão
+  useEffect(() => {
+    if (status === "authenticated") {
+      setShowAuthPrompt(false);
+    } else if (status === "unauthenticated") {
+      setShowAuthPrompt(true);
+    }
+  }, [status, session]);
 
   const selectedService = SERVICES.find(s => s.id === selectedServiceId);
 
@@ -169,8 +178,13 @@ function NewBookingFormContent() {
       return;
     }
 
-    if (!session?.user) {
+    if (status === "loading") {
+      return; // Aguardar carregamento da sessão
+    }
+
+    if (status === "unauthenticated" || !session?.user) {
       setShowAuthPrompt(true);
+      router.push("/auth?redirect=/agendar");
       return;
     }
 
@@ -228,8 +242,8 @@ function NewBookingFormContent() {
             </div>
           </div>
 
-          {/* Alerta de autenticação */}
-          {showAuthPrompt && (
+          {/* Alerta de autenticação - só mostra se realmente não estiver autenticado */}
+          {status === "unauthenticated" && (
             <div className="mb-6 p-4 bg-amber-50 border border-amber-200 rounded-lg flex items-start gap-3">
               <AlertCircle className="h-5 w-5 text-amber-600 mt-0.5 flex-shrink-0" />
               <div className="flex-1">
