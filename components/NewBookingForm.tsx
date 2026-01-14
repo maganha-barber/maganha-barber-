@@ -7,6 +7,7 @@ import { Calendar, Clock, User, Check, AlertCircle, ChevronLeft, ChevronRight, P
 import { format, addDays, startOfWeek, addWeeks, isSameDay, getDay } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { BookingCart } from "./BookingCart";
+import { ConfirmModal } from "./ConfirmModal";
 import { 
   getServicos, 
   getBarbeiros, 
@@ -49,15 +50,18 @@ function NewBookingFormContent() {
     serviceIdFromUrl || ""
   );
   
-  // Step 0: Selecionar serviço, Step 1: Barbeiro, Step 2: Horário, Step 3: Confirmar
+  // Step 0: Selecionar serviço, Step 1: Barbeiro, Step 2: Horário, Step 3: Telefone, Step 4: Confirmar
   const [step, setStep] = useState(serviceIdFromUrl ? 1 : 0);
   const [selectedBarber, setSelectedBarber] = useState<string>("");
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [selectedTime, setSelectedTime] = useState<string>("");
+  const [telefone, setTelefone] = useState<string>("");
   const [timeSlots, setTimeSlots] = useState<TimeSlot[]>([]);
   const [loading, setLoading] = useState(false);
   const [showAuthPrompt, setShowAuthPrompt] = useState(false);
   const [currentWeekStart, setCurrentWeekStart] = useState(startOfWeek(new Date(), { weekStartsOn: 1 }));
+  const [showErrorModal, setShowErrorModal] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
 
   // Carregar dados do Supabase
   useEffect(() => {
@@ -259,6 +263,10 @@ function NewBookingFormContent() {
       setStep(1); // Ir para seleção de barbeiro
     } else if (step === 1 && selectedBarber) {
       setStep(2); // Ir para horários
+    } else if (step === 2 && selectedTime) {
+      setStep(3); // Ir para telefone
+    } else if (step === 3 && telefone.trim()) {
+      handleSubmit(); // Confirmar agendamento
     }
   }
 
@@ -270,8 +278,24 @@ function NewBookingFormContent() {
     }
   }
 
+  // Formatar telefone enquanto digita
+  function formatPhone(value: string) {
+    // Remove tudo que não é número
+    const numbers = value.replace(/\D/g, "");
+    
+    // Limita a 11 dígitos
+    const limited = numbers.slice(0, 11);
+    
+    // Formata: (XX) XXXXX-XXXX ou (XX) XXXX-XXXX
+    if (limited.length <= 10) {
+      return limited.replace(/(\d{2})(\d{4})(\d{0,4})/, "($1) $2-$3").replace(/-$/, "");
+    } else {
+      return limited.replace(/(\d{2})(\d{5})(\d{0,4})/, "($1) $2-$3").replace(/-$/, "");
+    }
+  }
+
   async function handleSubmit() {
-    if (!selectedServiceId || !selectedBarber || !selectedDate || !selectedTime || !selectedService) {
+    if (!selectedServiceId || !selectedBarber || !selectedDate || !selectedTime || !selectedService || !telefone.trim()) {
       return;
     }
 
@@ -297,8 +321,9 @@ function NewBookingFormContent() {
       );
 
       if (!disponivel) {
-        alert("Este horário não está mais disponível. Por favor, escolha outro horário.");
         setLoading(false);
+        setErrorMessage("Este horário não está mais disponível. Por favor, escolha outro horário.");
+        setShowErrorModal(true);
         loadTimeSlots(); // Recarregar slots
         return;
       }
@@ -313,18 +338,21 @@ function NewBookingFormContent() {
         status: "pendente",
         servico_id: selectedServiceId,
         barbeiro_id: selectedBarber,
+        telefone: telefone.trim(),
       });
 
       if (booking) {
         router.push(`/agendar/confirmacao?id=${booking.id}`);
       } else {
-        alert("Erro ao criar agendamento. Tente novamente.");
         setLoading(false);
+        setErrorMessage("Erro ao criar agendamento. Tente novamente.");
+        setShowErrorModal(true);
       }
     } catch (error: any) {
       console.error("Erro ao criar agendamento:", error);
-      alert(error.message || "Erro ao criar agendamento. Tente novamente.");
       setLoading(false);
+      setErrorMessage(error.message || "Erro ao criar agendamento. Tente novamente.");
+      setShowErrorModal(true);
     }
   }
 
@@ -651,16 +679,65 @@ function NewBookingFormContent() {
                 Voltar
               </button>
               <button
-                onClick={handleSubmit}
-                disabled={!selectedTime || loading}
+                onClick={handleNext}
+                disabled={!selectedTime}
                 className={`px-8 py-3 bg-neutral-900 text-white font-semibold rounded-lg transition-all ${
-                  !selectedTime || loading
+                  !selectedTime
                     ? "opacity-50 cursor-not-allowed"
                     : "hover:bg-neutral-800"
                 }`}
               >
-                {loading ? "Confirmando..." : "Continuar"}
+                Próximo
               </button>
+            </div>
+          )}
+
+          {/* Step 3: Telefone */}
+          {step === 3 && (
+            <div className="space-y-6">
+              <div>
+                <h2 className="text-2xl font-bold text-neutral-900 mb-2">Seu Telefone</h2>
+                <p className="text-neutral-600 text-sm">
+                  Precisamos do seu telefone para entrar em contato sobre o agendamento.
+                </p>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-neutral-700 mb-2">
+                  Telefone *
+                </label>
+                <input
+                  type="tel"
+                  value={telefone}
+                  onChange={(e) => setTelefone(formatPhone(e.target.value))}
+                  placeholder="(35) 99999-9999"
+                  className="w-full px-4 py-3 border-2 border-neutral-300 rounded-lg focus:border-gold-500 focus:outline-none transition-colors text-lg"
+                  maxLength={15}
+                />
+                <p className="text-xs text-neutral-500 mt-1">
+                  Formato: (XX) XXXXX-XXXX ou (XX) XXXX-XXXX
+                </p>
+              </div>
+
+              <div className="flex justify-between mt-8 pt-6 border-t border-neutral-200">
+                <button
+                  onClick={handleBack}
+                  className="px-6 py-3 border border-neutral-300 font-semibold rounded-lg bg-white text-neutral-900 hover:border-gold-500 transition-all"
+                >
+                  Voltar
+                </button>
+                <button
+                  onClick={handleNext}
+                  disabled={!telefone.trim() || loading}
+                  className={`px-8 py-3 bg-neutral-900 text-white font-semibold rounded-lg transition-all ${
+                    !telefone.trim() || loading
+                      ? "opacity-50 cursor-not-allowed"
+                      : "hover:bg-neutral-800"
+                  }`}
+                >
+                  {loading ? "Confirmando..." : "Confirmar Agendamento"}
+                </button>
+              </div>
             </div>
           )}
         </div>
@@ -675,6 +752,17 @@ function NewBookingFormContent() {
           </div>
         )}
       </div>
+
+      {/* Modal de Erro */}
+      <ConfirmModal
+        isOpen={showErrorModal}
+        onClose={() => setShowErrorModal(false)}
+        onConfirm={() => setShowErrorModal(false)}
+        title="Erro"
+        message={errorMessage}
+        confirmText="OK"
+        type="danger"
+      />
     </div>
   );
 }

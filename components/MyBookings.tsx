@@ -7,6 +7,7 @@ import { Calendar, Clock, Scissors, User, CheckCircle, X, AlertCircle } from "lu
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { getAgendamentosUsuario, updateAgendamentoStatus, getServicos, getBarbeiros, type Booking, type Service, type Barber } from "@/lib/supabase/services";
+import { ConfirmModal } from "./ConfirmModal";
 
 function MyBookingsContent() {
   const router = useRouter();
@@ -17,6 +18,11 @@ function MyBookingsContent() {
   const [barbers, setBarbers] = useState<Barber[]>([]);
   const [loading, setLoading] = useState(true);
   const [cancellingId, setCancellingId] = useState<string | null>(null);
+  const [showCancelModal, setShowCancelModal] = useState(false);
+  const [bookingToCancel, setBookingToCancel] = useState<string | null>(null);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [showErrorModal, setShowErrorModal] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
 
   useEffect(() => {
     if (status === "loading") return;
@@ -32,7 +38,7 @@ function MyBookingsContent() {
 
     if (searchParams.get("success") === "true") {
       setTimeout(() => {
-        alert("Agendamento confirmado com sucesso! Aguarde a confirmação do administrador.");
+        setShowSuccessModal(true);
       }, 100);
     }
   }, [status, session, router, searchParams]);
@@ -57,23 +63,30 @@ function MyBookingsContent() {
     }
   }
 
-  async function handleCancel(bookingId: string) {
-    if (!confirm("Tem certeza que deseja cancelar este agendamento?")) {
-      return;
-    }
+  function openCancelModal(bookingId: string) {
+    setBookingToCancel(bookingId);
+    setShowCancelModal(true);
+  }
 
-    setCancellingId(bookingId);
+  async function handleCancel() {
+    if (!bookingToCancel) return;
+
+    setCancellingId(bookingToCancel);
+    setShowCancelModal(false);
 
     try {
-      const success = await updateAgendamentoStatus(bookingId, "cancelado");
+      const success = await updateAgendamentoStatus(bookingToCancel, "cancelado");
       if (success) {
         await loadData();
+        setBookingToCancel(null);
       } else {
-        alert("Erro ao cancelar agendamento. Tente novamente.");
+        setErrorMessage("Erro ao cancelar agendamento. Tente novamente.");
+        setShowErrorModal(true);
       }
     } catch (error) {
       console.error("Erro ao cancelar agendamento:", error);
-      alert("Erro ao cancelar agendamento. Tente novamente.");
+      setErrorMessage("Erro ao cancelar agendamento. Tente novamente.");
+      setShowErrorModal(true);
     } finally {
       setCancellingId(null);
     }
@@ -182,7 +195,7 @@ function MyBookingsContent() {
                 
                 {canCancel && (
                   <button
-                    onClick={() => handleCancel(booking.id)}
+                    onClick={() => openCancelModal(booking.id)}
                     disabled={cancellingId === booking.id}
                     className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-red-600 hover:text-red-700 hover:bg-red-50 rounded-md transition-colors disabled:opacity-50"
                   >
@@ -204,6 +217,44 @@ function MyBookingsContent() {
           </div>
         );
       })}
+
+      {/* Modal de Confirmação de Cancelamento */}
+      <ConfirmModal
+        isOpen={showCancelModal}
+        onClose={() => {
+          setShowCancelModal(false);
+          setBookingToCancel(null);
+        }}
+        onConfirm={handleCancel}
+        title="Cancelar Agendamento"
+        message="Tem certeza que deseja cancelar este agendamento? Esta ação não pode ser desfeita."
+        confirmText="Sim, Cancelar"
+        cancelText="Não, Manter"
+        type="danger"
+        loading={cancellingId !== null}
+      />
+
+      {/* Modal de Sucesso */}
+      <ConfirmModal
+        isOpen={showSuccessModal}
+        onClose={() => setShowSuccessModal(false)}
+        onConfirm={() => setShowSuccessModal(false)}
+        title="Agendamento Confirmado"
+        message="Agendamento confirmado com sucesso! Aguarde a confirmação do administrador."
+        confirmText="OK"
+        type="success"
+      />
+
+      {/* Modal de Erro */}
+      <ConfirmModal
+        isOpen={showErrorModal}
+        onClose={() => setShowErrorModal(false)}
+        onConfirm={() => setShowErrorModal(false)}
+        title="Erro"
+        message={errorMessage}
+        confirmText="OK"
+        type="danger"
+      />
     </div>
   );
 }

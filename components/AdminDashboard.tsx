@@ -20,7 +20,9 @@ import {
   Save,
   Plus,
   Trash2,
+  Phone,
 } from "lucide-react";
+import { ConfirmModal } from "./ConfirmModal";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import {
@@ -228,22 +230,32 @@ export function AdminDashboard() {
     }
   }
 
-  async function handleDeleteService(serviceId: string) {
-    if (!confirm("Tem certeza que deseja excluir este serviço? Esta ação não pode ser desfeita.")) {
-      return;
-    }
+  function openDeleteServiceModal(serviceId: string) {
+    setServiceToDelete(serviceId);
+    setShowDeleteServiceModal(true);
+  }
+
+  async function handleDeleteService() {
+    if (!serviceToDelete) return;
 
     try {
-      const success = await deleteServico(serviceId);
+      const success = await deleteServico(serviceToDelete);
       if (success) {
         await loadData();
-        alert("Serviço excluído com sucesso!");
+        setShowDeleteServiceModal(false);
+        setServiceToDelete(null);
+        setModalMessage("Serviço excluído com sucesso!");
+        setShowSuccessModal(true);
       } else {
-        alert("Erro ao excluir serviço.");
+        setShowDeleteServiceModal(false);
+        setModalMessage("Erro ao excluir serviço.");
+        setShowErrorModal(true);
       }
     } catch (error) {
       console.error("Erro ao excluir serviço:", error);
-      alert("Erro ao excluir serviço.");
+      setShowDeleteServiceModal(false);
+      setModalMessage("Erro ao excluir serviço.");
+      setShowErrorModal(true);
     }
   }
 
@@ -392,22 +404,32 @@ export function AdminDashboard() {
     }
   }
 
-  async function handleDeleteBloqueio(bloqueioId: string) {
-    if (!confirm("Tem certeza que deseja remover este bloqueio de horário?")) {
-      return;
-    }
+  function openDeleteBloqueioModal(bloqueioId: string) {
+    setBloqueioToDelete(bloqueioId);
+    setShowDeleteBloqueioModal(true);
+  }
+
+  async function handleDeleteBloqueio() {
+    if (!bloqueioToDelete) return;
 
     try {
-      const success = await deleteBloqueioHorario(bloqueioId);
+      const success = await deleteBloqueioHorario(bloqueioToDelete);
       if (success) {
         await loadData();
-        alert("Bloqueio removido com sucesso!");
+        setShowDeleteBloqueioModal(false);
+        setBloqueioToDelete(null);
+        setModalMessage("Bloqueio removido com sucesso!");
+        setShowSuccessModal(true);
       } else {
-        alert("Erro ao remover bloqueio.");
+        setShowDeleteBloqueioModal(false);
+        setModalMessage("Erro ao remover bloqueio.");
+        setShowErrorModal(true);
       }
     } catch (error) {
       console.error("Erro ao remover bloqueio:", error);
-      alert("Erro ao remover bloqueio.");
+      setShowDeleteBloqueioModal(false);
+      setModalMessage("Erro ao remover bloqueio.");
+      setShowErrorModal(true);
     }
   }
 
@@ -645,6 +667,12 @@ export function AdminDashboard() {
                                   {booking.usuario_nome || "Cliente"}
                                 </p>
                                 <p className="text-xs text-neutral-500">{booking.usuario_email}</p>
+                                {booking.telefone && (
+                                  <p className="text-xs text-neutral-500 flex items-center gap-1 mt-1">
+                                    <Phone className="h-3 w-3" />
+                                    {booking.telefone}
+                                  </p>
+                                )}
                               </div>
                             </td>
                             <td className="px-4 lg:px-6 py-4 whitespace-nowrap">
@@ -1136,7 +1164,7 @@ export function AdminDashboard() {
                               <Edit className="h-5 w-5" />
                             </button>
                             <button
-                              onClick={() => handleDeleteService(service.id)}
+                              onClick={() => openDeleteServiceModal(service.id)}
                               className="p-2 text-red-500 hover:bg-red-50 rounded transition-colors"
                               title="Excluir serviço"
                             >
@@ -1510,7 +1538,7 @@ export function AdminDashboard() {
                             </div>
                           </div>
                           <button
-                            onClick={() => handleDeleteBloqueio(bloqueio.id)}
+                            onClick={() => openDeleteBloqueioModal(bloqueio.id)}
                             className="p-2 text-red-500 hover:bg-red-50 rounded transition-colors"
                             title="Remover bloqueio"
                           >
@@ -1526,6 +1554,55 @@ export function AdminDashboard() {
           </div>
         )}
       </div>
+
+      {/* Modais */}
+      <ConfirmModal
+        isOpen={showDeleteServiceModal}
+        onClose={() => {
+          setShowDeleteServiceModal(false);
+          setServiceToDelete(null);
+        }}
+        onConfirm={handleDeleteService}
+        title="Excluir Serviço"
+        message="Tem certeza que deseja excluir este serviço? Esta ação não pode ser desfeita."
+        confirmText="Sim, Excluir"
+        cancelText="Cancelar"
+        type="danger"
+      />
+
+      <ConfirmModal
+        isOpen={showDeleteBloqueioModal}
+        onClose={() => {
+          setShowDeleteBloqueioModal(false);
+          setBloqueioToDelete(null);
+        }}
+        onConfirm={handleDeleteBloqueio}
+        title="Remover Bloqueio"
+        message="Tem certeza que deseja remover este bloqueio de horário?"
+        confirmText="Sim, Remover"
+        cancelText="Cancelar"
+        type="danger"
+      />
+
+      <ConfirmModal
+        isOpen={showSuccessModal}
+        onClose={() => setShowSuccessModal(false)}
+        onConfirm={() => setShowSuccessModal(false)}
+        title="Sucesso"
+        message={modalMessage}
+        confirmText="OK"
+        type="success"
+      />
+
+      <ConfirmModal
+        isOpen={showErrorModal}
+        onClose={() => setShowErrorModal(false)}
+        onConfirm={() => setShowErrorModal(false)}
+        title="Erro"
+        message={modalMessage}
+        confirmText="OK"
+        type="danger"
+      />
     </div>
   );
 }

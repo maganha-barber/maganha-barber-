@@ -47,6 +47,7 @@ export interface Booking {
   usuario_id: string;
   usuario_email: string;
   usuario_nome?: string;
+  telefone?: string;
   servico_id: string;
   barbeiro_id: string;
   data: string;
@@ -226,6 +227,7 @@ export async function createAgendamento(booking: Omit<Booking, "id" | "created_a
       usuario_id: booking.usuario_id,
       usuario_email: booking.usuario_email,
       usuario_nome: booking.usuario_nome,
+      telefone: booking.telefone,
       servico_id: booking.servico_id,
       barbeiro_id: booking.barbeiro_id,
       data: booking.data,
