@@ -98,7 +98,7 @@ export function Navbar() {
 
       {/* Mobile Menu Panel */}
       {isOpen && (
-        <div className="lg:hidden fixed top-20 left-0 right-0 h-[50vh] bg-neutral-900/98 backdrop-blur-md border-t border-gold-500/20 z-40 overflow-y-auto shadow-xl">
+        <div className="lg:hidden fixed top-20 left-0 right-0 h-[50vh] bg-neutral-900 border-t border-gold-500/20 z-40 overflow-y-auto shadow-xl">
           <div className="flex flex-col px-6 py-8 space-y-4">
             <Link
               href="/"

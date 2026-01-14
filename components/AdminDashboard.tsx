@@ -184,7 +184,8 @@ export function AdminDashboard() {
 
   const stats = getStats();
   
-  const userIsAdmin = session?.user?.isAdmin || false;
+  // Verificar se é admin usando email
+  const userIsAdmin = session?.user?.email && ADMIN_EMAILS.includes(session.user.email.toLowerCase());
 
   if (loading || status === "loading") {
     return (
@@ -208,27 +209,27 @@ export function AdminDashboard() {
     <div className="w-full min-h-screen bg-gradient-soft py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
-        <div className="mb-8 flex items-center justify-between">
+        <div className="mb-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>
             <div className="flex items-center gap-3 mb-2">
-              <Shield className="h-8 w-8 text-gold-500" />
-              <h1 className="font-serif text-4xl font-bold text-neutral-900">
+              <Shield className="h-6 w-6 sm:h-8 sm:w-8 text-gold-500" />
+              <h1 className="font-serif text-2xl sm:text-3xl lg:text-4xl font-bold text-neutral-900">
                 Painel Administrativo
               </h1>
             </div>
-            <p className="text-neutral-600">Gerencie agendamentos, serviços e horários</p>
+            <p className="text-sm sm:text-base text-neutral-600">Gerencie agendamentos, serviços e horários</p>
           </div>
           <button
             onClick={() => signOut()}
-            className="flex items-center gap-2 px-4 py-2 text-neutral-700 hover:text-neutral-900 hover:bg-neutral-100 rounded-md transition-colors"
+            className="flex items-center gap-2 px-3 py-2 sm:px-4 text-sm sm:text-base text-neutral-700 hover:text-neutral-900 hover:bg-neutral-100 rounded-md transition-colors w-full sm:w-auto justify-center"
           >
-            <LogOut className="h-5 w-5" />
+            <LogOut className="h-4 w-4 sm:h-5 sm:w-5" />
             Sair
           </button>
         </div>
 
         {/* Tabs */}
-        <div className="mb-6 flex gap-2 border-b border-neutral-200">
+        <div className="mb-6 flex gap-2 border-b border-neutral-200 overflow-x-auto">
           <button
             onClick={() => setActiveTab("agendamentos")}
             className={`px-4 py-2 font-semibold transition-colors ${
@@ -303,12 +304,12 @@ export function AdminDashboard() {
         {activeTab === "agendamentos" && (
           <>
             {/* Filters */}
-            <div className="mb-6 flex gap-2">
+            <div className="mb-6 flex gap-2 overflow-x-auto pb-2">
               {(["todos", "pendente", "confirmado", "cancelado"] as const).map((f) => (
                 <button
                   key={f}
                   onClick={() => setFilter(f)}
-                  className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                  className={`px-3 sm:px-4 py-2 rounded-md text-xs sm:text-sm font-medium transition-colors whitespace-nowrap ${
                     filter === f
                       ? "bg-gold-500 text-neutral-900"
                       : "bg-white text-neutral-700 hover:bg-neutral-50 border border-neutral-200"
@@ -325,28 +326,29 @@ export function AdminDashboard() {
               ))}
             </div>
 
-            {/* Bookings Table */}
+            {/* Bookings - Desktop Table / Mobile Cards */}
             <div className="bg-white border border-neutral-200 rounded-lg shadow-sm overflow-hidden">
-              <div className="overflow-x-auto">
+              {/* Desktop Table */}
+              <div className="hidden md:block overflow-x-auto">
                 <table className="w-full">
                   <thead className="bg-neutral-50 border-b border-neutral-200">
                     <tr>
-                      <th className="px-6 py-4 text-left text-xs font-semibold text-neutral-700 uppercase tracking-wider">
+                      <th className="px-4 lg:px-6 py-4 text-left text-xs font-semibold text-neutral-700 uppercase tracking-wider">
                         Cliente
                       </th>
-                      <th className="px-6 py-4 text-left text-xs font-semibold text-neutral-700 uppercase tracking-wider">
+                      <th className="px-4 lg:px-6 py-4 text-left text-xs font-semibold text-neutral-700 uppercase tracking-wider">
                         Serviço
                       </th>
-                      <th className="px-6 py-4 text-left text-xs font-semibold text-neutral-700 uppercase tracking-wider">
+                      <th className="px-4 lg:px-6 py-4 text-left text-xs font-semibold text-neutral-700 uppercase tracking-wider">
                         Data
                       </th>
-                      <th className="px-6 py-4 text-left text-xs font-semibold text-neutral-700 uppercase tracking-wider">
+                      <th className="px-4 lg:px-6 py-4 text-left text-xs font-semibold text-neutral-700 uppercase tracking-wider">
                         Horário
                       </th>
-                      <th className="px-6 py-4 text-left text-xs font-semibold text-neutral-700 uppercase tracking-wider">
+                      <th className="px-4 lg:px-6 py-4 text-left text-xs font-semibold text-neutral-700 uppercase tracking-wider">
                         Status
                       </th>
-                      <th className="px-6 py-4 text-left text-xs font-semibold text-neutral-700 uppercase tracking-wider">
+                      <th className="px-4 lg:px-6 py-4 text-left text-xs font-semibold text-neutral-700 uppercase tracking-wider">
                         Ações
                       </th>
                     </tr>
@@ -366,7 +368,7 @@ export function AdminDashboard() {
 
                         return (
                           <tr key={booking.id} className="hover:bg-neutral-50">
-                            <td className="px-6 py-4 whitespace-nowrap">
+                            <td className="px-4 lg:px-6 py-4 whitespace-nowrap">
                               <div>
                                 <p className="text-sm font-medium text-neutral-900">
                                   {booking.usuario_nome || "Cliente"}
@@ -374,18 +376,18 @@ export function AdminDashboard() {
                                 <p className="text-xs text-neutral-500">{booking.usuario_email}</p>
                               </div>
                             </td>
-                            <td className="px-6 py-4 whitespace-nowrap">
+                            <td className="px-4 lg:px-6 py-4 whitespace-nowrap">
                               <span className="text-sm text-neutral-700">
                                 {servico?.nome || "Serviço"}
                               </span>
                             </td>
-                            <td className="px-6 py-4 whitespace-nowrap">
+                            <td className="px-4 lg:px-6 py-4 whitespace-nowrap">
                               {isEditing ? (
                                 <input
                                   type="date"
                                   value={editDate}
                                   onChange={(e) => setEditDate(e.target.value)}
-                                  className="px-2 py-1 border border-neutral-300 rounded text-sm"
+                                  className="px-2 py-1 border border-neutral-300 rounded text-sm w-full"
                                 />
                               ) : (
                                 <span className="text-sm text-neutral-700">
@@ -393,23 +395,23 @@ export function AdminDashboard() {
                                 </span>
                               )}
                             </td>
-                            <td className="px-6 py-4 whitespace-nowrap">
+                            <td className="px-4 lg:px-6 py-4 whitespace-nowrap">
                               {isEditing ? (
                                 <input
                                   type="time"
                                   value={editTime}
                                   onChange={(e) => setEditTime(e.target.value)}
-                                  className="px-2 py-1 border border-neutral-300 rounded text-sm"
+                                  className="px-2 py-1 border border-neutral-300 rounded text-sm w-full"
                                 />
                               ) : (
                                 <span className="text-sm text-neutral-700">{booking.hora}</span>
                               )}
                             </td>
-                            <td className="px-6 py-4 whitespace-nowrap">
+                            <td className="px-4 lg:px-6 py-4 whitespace-nowrap">
                               <select
                                 value={booking.status}
                                 onChange={(e) => handleStatusChange(booking.id, e.target.value)}
-                                className={`px-3 py-1 rounded-md text-xs font-semibold border ${
+                                className={`px-2 lg:px-3 py-1 rounded-md text-xs font-semibold border w-full ${
                                   booking.status === "confirmado"
                                     ? "bg-green-50 text-green-700 border-green-200"
                                     : booking.status === "pendente"
@@ -423,7 +425,7 @@ export function AdminDashboard() {
                                 <option value="concluido">Concluído</option>
                               </select>
                             </td>
-                            <td className="px-6 py-4 whitespace-nowrap">
+                            <td className="px-4 lg:px-6 py-4 whitespace-nowrap">
                               <div className="flex items-center gap-2">
                                 {isEditing ? (
                                   <>
@@ -459,6 +461,124 @@ export function AdminDashboard() {
                     )}
                   </tbody>
                 </table>
+              </div>
+
+              {/* Mobile Cards */}
+              <div className="md:hidden divide-y divide-neutral-200">
+                {filteredBookings.length === 0 ? (
+                  <div className="px-6 py-12 text-center text-neutral-500">
+                    Nenhum agendamento encontrado
+                  </div>
+                ) : (
+                  filteredBookings.map((booking) => {
+                    const bookingDate = new Date(booking.data);
+                    const isEditing = editingId === booking.id;
+                    const servico = services.find(s => s.id === booking.servico_id);
+
+                    return (
+                      <div key={booking.id} className="p-4 space-y-3">
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <p className="text-sm font-semibold text-neutral-900">
+                              {booking.usuario_nome || "Cliente"}
+                            </p>
+                            <p className="text-xs text-neutral-500">{booking.usuario_email}</p>
+                          </div>
+                          {!isEditing && (
+                            <button
+                              onClick={() => handleEdit(booking)}
+                              className="p-1.5 text-gold-500 hover:bg-gold-50 rounded transition-colors"
+                            >
+                              <Edit className="h-4 w-4" />
+                            </button>
+                          )}
+                        </div>
+                        
+                        <div className="space-y-2">
+                          <div>
+                            <span className="text-xs text-neutral-500">Serviço:</span>
+                            <p className="text-sm text-neutral-700">{servico?.nome || "Serviço"}</p>
+                          </div>
+                          
+                          {isEditing ? (
+                            <div className="grid grid-cols-2 gap-2">
+                              <div>
+                                <label className="text-xs text-neutral-500 block mb-1">Data</label>
+                                <input
+                                  type="date"
+                                  value={editDate}
+                                  onChange={(e) => setEditDate(e.target.value)}
+                                  className="w-full px-2 py-1 border border-neutral-300 rounded text-sm"
+                                />
+                              </div>
+                              <div>
+                                <label className="text-xs text-neutral-500 block mb-1">Horário</label>
+                                <input
+                                  type="time"
+                                  value={editTime}
+                                  onChange={(e) => setEditTime(e.target.value)}
+                                  className="w-full px-2 py-1 border border-neutral-300 rounded text-sm"
+                                />
+                              </div>
+                            </div>
+                          ) : (
+                            <>
+                              <div>
+                                <span className="text-xs text-neutral-500">Data:</span>
+                                <p className="text-sm text-neutral-700">
+                                  {format(bookingDate, "dd/MM/yyyy", { locale: ptBR })}
+                                </p>
+                              </div>
+                              <div>
+                                <span className="text-xs text-neutral-500">Horário:</span>
+                                <p className="text-sm text-neutral-700">{booking.hora}</p>
+                              </div>
+                            </>
+                          )}
+                          
+                          <div>
+                            <span className="text-xs text-neutral-500">Status:</span>
+                            <select
+                              value={booking.status}
+                              onChange={(e) => handleStatusChange(booking.id, e.target.value)}
+                              className={`mt-1 w-full px-3 py-1.5 rounded-md text-xs font-semibold border ${
+                                booking.status === "confirmado"
+                                  ? "bg-green-50 text-green-700 border-green-200"
+                                  : booking.status === "pendente"
+                                  ? "bg-amber-50 text-amber-700 border-amber-200"
+                                  : "bg-red-50 text-red-700 border-red-200"
+                              }`}
+                            >
+                              <option value="pendente">Pendente</option>
+                              <option value="confirmado">Confirmado</option>
+                              <option value="cancelado">Cancelado</option>
+                              <option value="concluido">Concluído</option>
+                            </select>
+                          </div>
+                        </div>
+
+                        {isEditing && (
+                          <div className="flex gap-2 pt-2">
+                            <button
+                              onClick={() => handleSaveEdit(booking.id)}
+                              className="flex-1 px-3 py-2 bg-green-500 text-white rounded-md text-sm font-semibold hover:bg-green-600 transition-colors flex items-center justify-center gap-2"
+                            >
+                              <CheckCircle className="h-4 w-4" />
+                              Salvar
+                            </button>
+                            <button
+                              onClick={() => setEditingId(null)}
+                              className="flex-1 px-3 py-2 bg-red-500 text-white rounded-md text-sm font-semibold hover:bg-red-600 transition-colors flex items-center justify-center gap-2"
+                            >
+                              <X className="h-4 w-4" />
+                              Cancelar
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })
+                )}
               </div>
             </div>
           </>
@@ -616,8 +736,8 @@ export function AdminDashboard() {
         {/* Horários Tab */}
         {activeTab === "horarios" && (
           <div className="bg-white border border-neutral-200 rounded-lg shadow-sm overflow-hidden">
-            <div className="p-6">
-              <h2 className="text-xl font-bold text-neutral-900 mb-4">Horários de Funcionamento</h2>
+            <div className="p-4 sm:p-6">
+              <h2 className="text-lg sm:text-xl font-bold text-neutral-900 mb-4">Horários de Funcionamento</h2>
               <div className="space-y-4">
                 {horarios.map((horario) => {
                   const isEditing = editingHorarioId === horario.dia_semana;
@@ -643,7 +763,7 @@ export function AdminDashboard() {
                             </label>
                           </div>
                           {editedHorario.aberto && (
-                            <div className="grid grid-cols-2 gap-4">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                               <div>
                                 <label className="block text-sm font-medium text-neutral-700 mb-1">
                                   Manhã - Início
@@ -657,7 +777,7 @@ export function AdminDashboard() {
                                       horario_manha_inicio: e.target.value,
                                     })
                                   }
-                                  className="w-full px-3 py-2 border border-neutral-300 rounded-md"
+                                  className="w-full px-3 py-2 border border-neutral-300 rounded-md text-sm"
                                 />
                               </div>
                               <div>
@@ -673,7 +793,7 @@ export function AdminDashboard() {
                                       horario_manha_fim: e.target.value,
                                     })
                                   }
-                                  className="w-full px-3 py-2 border border-neutral-300 rounded-md"
+                                  className="w-full px-3 py-2 border border-neutral-300 rounded-md text-sm"
                                 />
                               </div>
                               <div>
@@ -689,7 +809,7 @@ export function AdminDashboard() {
                                       horario_tarde_inicio: e.target.value,
                                     })
                                   }
-                                  className="w-full px-3 py-2 border border-neutral-300 rounded-md"
+                                  className="w-full px-3 py-2 border border-neutral-300 rounded-md text-sm"
                                 />
                               </div>
                               <div>
@@ -705,7 +825,7 @@ export function AdminDashboard() {
                                       horario_tarde_fim: e.target.value,
                                     })
                                   }
-                                  className="w-full px-3 py-2 border border-neutral-300 rounded-md"
+                                  className="w-full px-3 py-2 border border-neutral-300 rounded-md text-sm"
                                 />
                               </div>
                             </div>

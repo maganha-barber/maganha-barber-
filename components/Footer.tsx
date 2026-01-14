@@ -17,9 +17,9 @@ export function Footer() {
   return (
     <footer className="w-full bg-neutral-900 text-white border-t border-gold-500/20">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-8">
           {/* Logo e Descrição */}
-          <div className="col-span-1 md:col-span-2">
+          <div className="col-span-1 md:col-span-2 lg:col-span-2">
             <div className="flex items-center gap-3 mb-4">
               <Logo className="h-10 w-10 text-gold-400" />
               <span className="font-serif text-2xl font-bold text-gold-400">
@@ -48,22 +48,26 @@ export function Footer() {
           </div>
 
           {/* Contato */}
-          <div>
+          <div className="col-span-1">
             <h3 className="font-serif text-lg font-bold text-gold-400 mb-4">
               Contato
             </h3>
             <ul className="space-y-3">
               <li className="flex items-start gap-3">
                 <Phone className="h-4 w-4 text-gold-400 mt-0.5 flex-shrink-0" />
-                <p className="text-neutral-300 text-sm">(11) 98765-4321</p>
+                <a href="tel:+5511987654321" className="text-neutral-300 text-sm hover:text-gold-400 transition-colors">
+                  (11) 98765-4321
+                </a>
               </li>
               <li className="flex items-start gap-3">
                 <Mail className="h-4 w-4 text-gold-400 mt-0.5 flex-shrink-0" />
-                <p className="text-neutral-300 text-sm">contato@maganhabarbearia.com.br</p>
+                <a href="mailto:contato@maganhabarbearia.com.br" className="text-neutral-300 text-sm hover:text-gold-400 transition-colors break-all">
+                  contato@maganhabarbearia.com.br
+                </a>
               </li>
               <li className="flex items-start gap-3">
                 <MapPin className="h-4 w-4 text-gold-400 mt-0.5 flex-shrink-0" />
-                <p className="text-neutral-300 text-sm">
+                <p className="text-neutral-300 text-sm leading-relaxed">
                   Rua Marquês de Abrantes, Barbearia<br />
                   Jardim Bom Astor, Minas Gerais
                 </p>
@@ -72,7 +76,7 @@ export function Footer() {
           </div>
 
           {/* Horários */}
-          <div>
+          <div className="col-span-1">
             <h3 className="font-serif text-lg font-bold text-gold-400 mb-4">
               Horários de funcionamento
             </h3>
