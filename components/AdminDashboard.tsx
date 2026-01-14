@@ -774,20 +774,24 @@ export function AdminDashboard() {
               <div className="space-y-4">
                 {horarios.map((horario) => {
                   const isEditing = editingHorarioId === horario.dia_semana;
+                  const editedHorario = editedHorarios[horario.dia_semana] || horario;
 
                   return (
                     <div
                       key={horario.id}
                       className="border border-neutral-200 rounded-lg p-4"
                     >
-                      {isEditing && editedHorario ? (
+                      {isEditing ? (
                         <div className="space-y-4">
                           <div className="flex items-center gap-2">
                             <input
                               type="checkbox"
                               checked={editedHorario.aberto}
                               onChange={(e) =>
-                                setEditedHorario({ ...editedHorario, aberto: e.target.checked })
+                                setEditedHorarios({
+                                  ...editedHorarios,
+                                  [horario.dia_semana]: { ...editedHorario, aberto: e.target.checked },
+                                })
                               }
                               className="rounded"
                             />
@@ -805,9 +809,12 @@ export function AdminDashboard() {
                                   type="time"
                                   value={editedHorario.horario_manha_inicio || ""}
                                   onChange={(e) =>
-                                    setEditedHorario({
-                                      ...editedHorario,
-                                      horario_manha_inicio: e.target.value,
+                                    setEditedHorarios({
+                                      ...editedHorarios,
+                                      [horario.dia_semana]: {
+                                        ...editedHorario,
+                                        horario_manha_inicio: e.target.value,
+                                      },
                                     })
                                   }
                                   className="w-full px-3 py-2 border border-neutral-300 rounded-md text-sm"
@@ -821,9 +828,12 @@ export function AdminDashboard() {
                                   type="time"
                                   value={editedHorario.horario_manha_fim || ""}
                                   onChange={(e) =>
-                                    setEditedHorario({
-                                      ...editedHorario,
-                                      horario_manha_fim: e.target.value,
+                                    setEditedHorarios({
+                                      ...editedHorarios,
+                                      [horario.dia_semana]: {
+                                        ...editedHorario,
+                                        horario_manha_fim: e.target.value,
+                                      },
                                     })
                                   }
                                   className="w-full px-3 py-2 border border-neutral-300 rounded-md text-sm"
@@ -837,9 +847,12 @@ export function AdminDashboard() {
                                   type="time"
                                   value={editedHorario.horario_tarde_inicio || ""}
                                   onChange={(e) =>
-                                    setEditedHorario({
-                                      ...editedHorario,
-                                      horario_tarde_inicio: e.target.value,
+                                    setEditedHorarios({
+                                      ...editedHorarios,
+                                      [horario.dia_semana]: {
+                                        ...editedHorario,
+                                        horario_tarde_inicio: e.target.value,
+                                      },
                                     })
                                   }
                                   className="w-full px-3 py-2 border border-neutral-300 rounded-md text-sm"
@@ -853,9 +866,12 @@ export function AdminDashboard() {
                                   type="time"
                                   value={editedHorario.horario_tarde_fim || ""}
                                   onChange={(e) =>
-                                    setEditedHorario({
-                                      ...editedHorario,
-                                      horario_tarde_fim: e.target.value,
+                                    setEditedHorarios({
+                                      ...editedHorarios,
+                                      [horario.dia_semana]: {
+                                        ...editedHorario,
+                                        horario_tarde_fim: e.target.value,
+                                      },
                                     })
                                   }
                                   className="w-full px-3 py-2 border border-neutral-300 rounded-md text-sm"
@@ -865,7 +881,7 @@ export function AdminDashboard() {
                           )}
                           <div className="flex gap-2">
                             <button
-                              onClick={() => handleSaveHorario(editedHorario)}
+                              onClick={() => handleSaveHorario(horario.dia_semana)}
                               className="px-4 py-2 bg-gold-500 text-neutral-900 rounded-md font-semibold hover:bg-gold-400 transition-colors flex items-center gap-2"
                             >
                               <Save className="h-4 w-4" />
@@ -874,7 +890,9 @@ export function AdminDashboard() {
                             <button
                               onClick={() => {
                                 setEditingHorarioId(null);
-                                setEditedHorario(null);
+                                const newEditedHorarios = { ...editedHorarios };
+                                delete newEditedHorarios[horario.dia_semana];
+                                setEditedHorarios(newEditedHorarios);
                               }}
                               className="px-4 py-2 bg-neutral-200 text-neutral-700 rounded-md font-semibold hover:bg-neutral-300 transition-colors"
                             >
