@@ -56,6 +56,12 @@ export function Navbar() {
               Serviços
             </Link>
             <Link
+              href="/#sobre"
+              className="text-neutral-300 hover:text-gold-400 font-medium text-sm transition-colors px-3 py-2"
+            >
+              Sobre
+            </Link>
+            <Link
               href="/agendar"
               className="text-neutral-300 hover:text-gold-400 font-medium text-sm transition-colors px-3 py-2 flex items-center gap-2"
             >
@@ -106,6 +112,13 @@ export function Navbar() {
             >
               <Scissors className="h-5 w-5" />
               Serviços
+            </Link>
+            <Link
+              href="/#sobre"
+              onClick={() => setIsOpen(false)}
+              className="text-neutral-300 hover:text-gold-400 font-semibold text-base py-2 transition-colors"
+            >
+              Sobre
             </Link>
             <Link
               href="/agendar"
