@@ -1,74 +1,31 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { Shield, Calendar, LogOut, User as UserIcon } from "lucide-react";
-import { getUser, isAdmin, signOut } from "@/lib/auth";
+import { useSession, signIn, signOut } from "next-auth/react";
+import { Shield, Calendar, LogOut } from "lucide-react";
+
+const ADMIN_EMAILS = ["lpmragi@gmail.com"];
 
 export function UserMenu() {
   const router = useRouter();
+  const { data: session } = useSession();
   const [isOpen, setIsOpen] = useState(false);
-  const [user, setUser] = useState(getUser());
   const menuRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    // Atualizar usuário quando mudar
-    const updateUser = () => {
-      const currentUser = getUser();
-      if (currentUser !== user) {
-        setUser(currentUser);
-      }
-    };
-    
-    // Verificar imediatamente
-    updateUser();
-    
-    // Listener para mudanças no localStorage e eventos customizados
-    window.addEventListener('storage', updateUser);
-    window.addEventListener('userUpdated', updateUser);
-    
-    // Verificar periodicamente também (para garantir sincronização após login)
-    // Verificar mais frequentemente nos primeiros segundos após carregar
-    const interval = setInterval(() => {
-      updateUser();
-    }, 200);
-    
-    // Após 5 segundos, reduzir a frequência
-    const slowInterval = setTimeout(() => {
-      clearInterval(interval);
-      const newInterval = setInterval(updateUser, 2000);
-      return () => clearInterval(newInterval);
-    }, 5000);
-    
-    // Fechar menu ao clicar fora
-    function handleClickOutside(event: MouseEvent) {
+  // Fechar menu ao clicar fora
+  if (typeof window !== "undefined") {
+    document.addEventListener("mousedown", (event: MouseEvent) => {
       if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
         setIsOpen(false);
       }
-    }
-    
-    document.addEventListener('mousedown', handleClickOutside);
-    
-    // Também verificar quando a página ganha foco (após redirecionamento)
-    const handleFocus = () => {
-      updateUser();
-    };
-    window.addEventListener('focus', handleFocus);
-    
-    return () => {
-      window.removeEventListener('storage', updateUser);
-      window.removeEventListener('userUpdated', updateUser);
-      window.removeEventListener('focus', handleFocus);
-      document.removeEventListener('mousedown', handleClickOutside);
-      clearInterval(interval);
-      clearTimeout(slowInterval);
-    };
-  }, [user]);
+    });
+  }
 
-  if (!user) {
+  if (!session) {
     return (
       <button
-        onClick={() => router.push("/auth")}
+        onClick={() => signIn("google")}
         className="px-5 py-2.5 bg-gold-500 text-neutral-900 font-semibold hover:bg-gold-400 transition-all rounded-md text-sm shadow-md hover:shadow-lg"
       >
         Login
@@ -76,13 +33,13 @@ export function UserMenu() {
     );
   }
 
-  const userIsAdmin = isAdmin(user);
-  const userInitials = user.name
-    .split(" ")
+  const userIsAdmin = session?.user?.email && ADMIN_EMAILS.includes(session.user.email);
+  const userInitials = session.user?.name
+    ?.split(" ")
     .map((n) => n[0])
     .join("")
     .toUpperCase()
-    .slice(0, 2);
+    .slice(0, 2) || "U";
 
   return (
     <div className="relative" ref={menuRef}>
@@ -92,10 +49,10 @@ export function UserMenu() {
       >
         <div className="flex items-center gap-2">
           <div className="w-8 h-8 rounded-full bg-gold-500 flex items-center justify-center text-neutral-900 font-bold text-sm">
-            {user.picture ? (
+            {session.user?.image ? (
               <img
-                src={user.picture}
-                alt={user.name}
+                src={session.user.image}
+                alt={session.user.name || "User"}
                 className="w-8 h-8 rounded-full object-cover"
               />
             ) : (
@@ -103,7 +60,9 @@ export function UserMenu() {
             )}
           </div>
           <div className="hidden md:block text-left">
-            <p className="text-sm font-semibold text-white">{user.name.toUpperCase()}</p>
+            <p className="text-sm font-semibold text-white">
+              {session.user?.name?.toUpperCase() || "USUÁRIO"}
+            </p>
             <p className="text-xs text-neutral-400">Minha Conta</p>
           </div>
         </div>
@@ -112,8 +71,8 @@ export function UserMenu() {
       {isOpen && (
         <div className="absolute right-0 mt-2 w-56 bg-neutral-800 rounded-lg shadow-xl border border-neutral-700 overflow-hidden z-50">
           <div className="px-4 py-3 border-b border-neutral-700 md:hidden">
-            <p className="text-sm font-semibold text-white">{user.name}</p>
-            <p className="text-xs text-neutral-400">{user.email}</p>
+            <p className="text-sm font-semibold text-white">{session.user?.name}</p>
+            <p className="text-xs text-neutral-400">{session.user?.email}</p>
           </div>
           
           <div className="py-1">

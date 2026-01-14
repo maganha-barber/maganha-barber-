@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useSession, signOut } from "next-auth/react";
 import {
   Calendar,
   Clock,
@@ -18,7 +19,8 @@ import {
 } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { getUser, isAdmin, signOut } from "@/lib/auth";
+
+const ADMIN_EMAILS = ["lpmragi@gmail.com"];
 
 interface Booking {
   id: string;
@@ -47,7 +49,7 @@ const BARBER_LABELS: Record<string, string> = {
 
 export function AdminDashboard() {
   const router = useRouter();
-  const [user, setUser] = useState(getUser());
+  const { data: session, status } = useSession();
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<"todos" | "pendente" | "confirmado" | "cancelado">("todos");
@@ -56,24 +58,18 @@ export function AdminDashboard() {
   const [editTime, setEditTime] = useState<string>("");
 
   useEffect(() => {
-    const currentUser = getUser();
+    if (status === "loading") return;
     
     // Se não estiver logado, redireciona para login
-    if (!currentUser) {
+    if (status === "unauthenticated") {
       router.push("/auth?redirect=/admin");
       return;
     }
     
-    // Permite acesso mesmo sem ser admin (para testes)
-    // Em produção, descomente as linhas abaixo para bloquear acesso
-    // if (!isAdmin(currentUser)) {
-    //   router.push("/");
-    //   return;
-    // }
-    
-    setUser(currentUser);
-    loadBookings();
-  }, []);
+    if (session) {
+      loadBookings();
+    }
+  }, [status, session, router]);
 
   function loadBookings() {
     if (typeof window === "undefined") return;
@@ -148,10 +144,9 @@ export function AdminDashboard() {
   const stats = getStats();
   
   // Verificar se é admin
-  const currentUser = getUser();
-  const userIsAdmin = currentUser ? isAdmin(currentUser) : false;
+  const userIsAdmin = session?.user?.email && ADMIN_EMAILS.includes(session.user.email);
 
-  if (loading) {
+  if (status === "loading" || loading) {
     return (
       <div className="w-full min-h-screen flex items-center justify-center bg-gradient-soft">
         <p className="text-neutral-600">Carregando...</p>
@@ -159,11 +154,15 @@ export function AdminDashboard() {
     );
   }
 
+  if (status === "unauthenticated") {
+    return null;
+  }
+
   return (
     <div className="w-full min-h-screen bg-gradient-soft py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Aviso se não for admin */}
-        {!userIsAdmin && currentUser && (
+        {!userIsAdmin && session && (
           <div className="mb-6 p-4 bg-amber-50 border border-amber-200 rounded-lg">
             <div className="flex items-start gap-3">
               <AlertCircle className="h-5 w-5 text-amber-600 mt-0.5 flex-shrink-0" />
@@ -171,7 +170,7 @@ export function AdminDashboard() {
                 <p className="font-semibold text-amber-900 mb-1">Modo de Teste</p>
                 <p className="text-sm text-amber-800">
                   Você está acessando como usuário comum. Para acesso completo como admin, 
-                  faça login com: <strong>admin@magbarber.com</strong> ou <strong>dono@magbarber.com</strong>
+                  faça login com: <strong>lpmragi@gmail.com</strong>
                 </p>
               </div>
             </div>
