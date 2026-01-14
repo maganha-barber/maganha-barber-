@@ -37,6 +37,12 @@ function NewBookingFormContent() {
   const searchParams = useSearchParams();
   const { data: session, status } = useSession();
   
+  // Estados para dados do Supabase
+  const [services, setServices] = useState<Service[]>([]);
+  const [barbers, setBarbers] = useState<Barber[]>([]);
+  const [horarios, setHorarios] = useState<HorarioFuncionamento[]>([]);
+  const [loadingData, setLoadingData] = useState(true);
+  
   // Pegar serviço da URL ou estado
   const serviceIdFromUrl = searchParams.get("servico");
   const [selectedServiceId, setSelectedServiceId] = useState<string>(
@@ -45,13 +51,50 @@ function NewBookingFormContent() {
   
   // Step 0: Selecionar serviço, Step 1: Barbeiro, Step 2: Horário, Step 3: Confirmar
   const [step, setStep] = useState(serviceIdFromUrl ? 1 : 0);
-  const [selectedBarber, setSelectedBarber] = useState<string>("1"); // Sempre Ronnie
+  const [selectedBarber, setSelectedBarber] = useState<string>("");
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [selectedTime, setSelectedTime] = useState<string>("");
   const [timeSlots, setTimeSlots] = useState<TimeSlot[]>([]);
   const [loading, setLoading] = useState(false);
   const [showAuthPrompt, setShowAuthPrompt] = useState(false);
   const [currentWeekStart, setCurrentWeekStart] = useState(startOfWeek(new Date(), { weekStartsOn: 1 }));
+
+  // Carregar dados do Supabase
+  useEffect(() => {
+    async function loadData() {
+      try {
+        const [servicosData, barbeirosData, horariosData] = await Promise.all([
+          getServicos(),
+          getBarbeiros(),
+          getHorariosFuncionamento(),
+        ]);
+
+        // Converter serviços para o formato esperado
+        const servicosFormatados: Service[] = servicosData.map(s => ({
+          ...s,
+          precoOriginal: s.preco_original ? Number(s.preco_original) : undefined,
+          desconto: s.desconto || undefined,
+          itensInclusos: s.itens_inclusos || undefined,
+          observacoes: s.observacoes || undefined,
+        }));
+
+        setServices(servicosFormatados);
+        setBarbers(barbeirosData);
+        setHorarios(horariosData);
+        
+        // Selecionar primeiro barbeiro automaticamente
+        if (barbeirosData.length > 0) {
+          setSelectedBarber(barbeirosData[0].id);
+        }
+        
+        setLoadingData(false);
+      } catch (error) {
+        console.error("Erro ao carregar dados:", error);
+        setLoadingData(false);
+      }
+    }
+    loadData();
+  }, []);
 
   // Atualizar showAuthPrompt baseado no status da sessão
   useEffect(() => {
