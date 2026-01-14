@@ -2,10 +2,10 @@
 
 import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { useSession } from "next-auth/react";
 import { Calendar, Clock, User, Check, AlertCircle, ChevronLeft, ChevronRight, Plus } from "lucide-react";
 import { format, addDays, startOfWeek, addWeeks, isSameDay, getDay } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { getUser } from "@/lib/auth";
 import { BookingCart } from "./BookingCart";
 
 interface Service {
@@ -169,8 +169,7 @@ function NewBookingFormContent() {
       return;
     }
 
-    const currentUser = getUser();
-    if (!currentUser) {
+    if (!session?.user) {
       setShowAuthPrompt(true);
       return;
     }
@@ -179,9 +178,9 @@ function NewBookingFormContent() {
 
     const booking = {
       id: crypto.randomUUID(),
-      usuario_id: currentUser.id,
-      usuario_email: currentUser.email,
-      usuario_nome: currentUser.name,
+      usuario_id: session.user.email || session.user.name || "",
+      usuario_email: session.user.email || "",
+      usuario_nome: session.user.name || session.user.email || "",
       data: format(selectedDate, "yyyy-MM-dd"),
       hora: selectedTime,
       status: "pendente",
