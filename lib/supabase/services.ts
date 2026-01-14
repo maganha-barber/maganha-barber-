@@ -31,6 +31,17 @@ export interface HorarioFuncionamento {
   horario_tarde_fim?: string;
 }
 
+export interface BloqueioHorario {
+  id: string;
+  barbeiro_id: string;
+  data: string; // YYYY-MM-DD
+  hora_inicio: string; // HH:MM
+  hora_fim: string; // HH:MM
+  motivo?: string;
+  created_at?: string;
+  updated_at?: string;
+}
+
 export interface Booking {
   id: string;
   usuario_id: string;
@@ -307,6 +318,72 @@ export async function updateAgendamento(
   return true;
 }
 
+// Carregar bloqueios de horários
+export async function getBloqueiosHorarios(
+  barbeiroId?: string,
+  data?: string
+): Promise<BloqueioHorario[]> {
+  const supabase = createClient();
+  let query = supabase.from("bloqueios_horarios").select("*");
+
+  if (barbeiroId) {
+    query = query.eq("barbeiro_id", barbeiroId);
+  }
+  if (data) {
+    query = query.eq("data", data);
+  }
+
+  const { data: bloqueios, error } = await query.order("data", { ascending: true }).order("hora_inicio", { ascending: true });
+
+  if (error) {
+    console.error("Erro ao carregar bloqueios:", error);
+    return [];
+  }
+
+  return bloqueios || [];
+}
+
+// Criar bloqueio de horário
+export async function createBloqueioHorario(
+  bloqueio: Omit<BloqueioHorario, "id" | "created_at" | "updated_at">
+): Promise<string | null> {
+  const supabase = createClient();
+  const { data, error } = await supabase
+    .from("bloqueios_horarios")
+    .insert({
+      barbeiro_id: bloqueio.barbeiro_id,
+      data: bloqueio.data,
+      hora_inicio: bloqueio.hora_inicio,
+      hora_fim: bloqueio.hora_fim,
+      motivo: bloqueio.motivo,
+    })
+    .select("id")
+    .single();
+
+  if (error) {
+    console.error("Erro ao criar bloqueio:", error);
+    return null;
+  }
+
+  return data?.id || null;
+}
+
+// Excluir bloqueio de horário
+export async function deleteBloqueioHorario(bloqueioId: string): Promise<boolean> {
+  const supabase = createClient();
+  const { error } = await supabase
+    .from("bloqueios_horarios")
+    .delete()
+    .eq("id", bloqueioId);
+
+  if (error) {
+    console.error("Erro ao excluir bloqueio:", error);
+    return false;
+  }
+
+  return true;
+}
+
 // Verificar disponibilidade de horário
 export async function verificarDisponibilidade(
   barbeiroId: string,
@@ -329,6 +406,27 @@ export async function verificarDisponibilidade(
     return false;
   }
 
+  // Buscar bloqueios conflitantes
+  const bloqueios = await getBloqueiosHorarios(barbeiroId, data);
+
+  // Verificar sobreposição com bloqueios
+  const horaInicio = parseTime(hora);
+  const horaFim = horaInicio + duracaoMinutos;
+
+  for (const bloqueio of bloqueios) {
+    const bloqueioInicio = parseTime(bloqueio.hora_inicio);
+    const bloqueioFim = parseTime(bloqueio.hora_fim);
+
+    // Verificar se há sobreposição
+    if (
+      (horaInicio >= bloqueioInicio && horaInicio < bloqueioFim) ||
+      (horaFim > bloqueioInicio && horaFim <= bloqueioFim) ||
+      (horaInicio <= bloqueioInicio && horaFim >= bloqueioFim)
+    ) {
+      return false; // Conflito com bloqueio
+    }
+  }
+
   // Buscar duração dos serviços conflitantes
   if (conflitos && conflitos.length > 0) {
     const servicoIds = conflitos.map(c => c.servico_id);
@@ -338,9 +436,6 @@ export async function verificarDisponibilidade(
       .in("id", servicoIds);
 
     // Verificar sobreposição de horários
-    const horaInicio = parseTime(hora);
-    const horaFim = horaInicio + duracaoMinutos;
-
     for (const conflito of conflitos) {
       const servico = servicos?.find(s => s.id === conflito.servico_id);
       if (servico) {

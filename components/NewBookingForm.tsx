@@ -145,6 +145,13 @@ function NewBookingFormContent() {
       .eq("data", dateStr)
       .in("status", ["pendente", "confirmado"]);
 
+    // Buscar bloqueios de horários
+    const { data: bloqueios } = await supabase
+      .from("bloqueios_horarios")
+      .select("hora_inicio, hora_fim")
+      .eq("barbeiro_id", selectedBarber)
+      .eq("data", dateStr);
+
     // Buscar durações dos serviços agendados
     const servicoIds = bookings?.map(b => b.servico_id) || [];
     let servicosData: any[] = [];
@@ -158,6 +165,8 @@ function NewBookingFormContent() {
 
     // Criar mapa de horários ocupados
     const horariosOcupados = new Set<string>();
+    
+    // Adicionar horários ocupados por agendamentos
     bookings?.forEach(booking => {
       const servico = servicosData.find(s => s.id === booking.servico_id);
       if (servico) {
@@ -172,6 +181,21 @@ function NewBookingFormContent() {
           const m = min % 60;
           horariosOcupados.add(`${h.toString().padStart(2, "0")}:${m.toString().padStart(2, "0")}`);
         }
+      }
+    });
+
+    // Adicionar horários bloqueados
+    bloqueios?.forEach(bloqueio => {
+      const [horaInicio, minutoInicio] = bloqueio.hora_inicio.split(":").map(Number);
+      const [horaFim, minutoFim] = bloqueio.hora_fim.split(":").map(Number);
+      const inicioMinutos = horaInicio * 60 + minutoInicio;
+      const fimMinutos = horaFim * 60 + minutoFim;
+      
+      // Marcar todos os slots de 10 em 10 minutos que estão bloqueados
+      for (let min = inicioMinutos; min < fimMinutos; min += 10) {
+        const h = Math.floor(min / 60);
+        const m = min % 60;
+        horariosOcupados.add(`${h.toString().padStart(2, "0")}:${m.toString().padStart(2, "0")}`);
       }
     });
 

@@ -33,9 +33,15 @@ import {
   updateHorarioFuncionamento,
   updateAgendamento,
   updateAgendamentoStatus,
+  getBloqueiosHorarios,
+  createBloqueioHorario,
+  deleteBloqueioHorario,
+  getBarbeiros,
   type Booking,
   type Service,
   type HorarioFuncionamento,
+  type BloqueioHorario,
+  type Barber,
 } from "@/lib/supabase/services";
 
 const ADMIN_EMAILS = ["lpmragi@gmail.com"];
@@ -49,6 +55,8 @@ export function AdminDashboard() {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [services, setServices] = useState<Service[]>([]);
   const [horarios, setHorarios] = useState<HorarioFuncionamento[]>([]);
+  const [barbers, setBarbers] = useState<Barber[]>([]);
+  const [bloqueios, setBloqueios] = useState<BloqueioHorario[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<"todos" | "pendente" | "confirmado" | "cancelado">("todos");
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -67,6 +75,14 @@ export function AdminDashboard() {
     ordem: 0,
   });
   const [editedHorarios, setEditedHorarios] = useState<Record<number, HorarioFuncionamento>>({});
+  const [creatingBloqueio, setCreatingBloqueio] = useState(false);
+  const [newBloqueio, setNewBloqueio] = useState<Omit<BloqueioHorario, "id" | "created_at" | "updated_at">>({
+    barbeiro_id: "",
+    data: "",
+    hora_inicio: "",
+    hora_fim: "",
+    motivo: "",
+  });
 
   useEffect(() => {
     if (status === "loading") return;
@@ -83,15 +99,25 @@ export function AdminDashboard() {
 
   async function loadData() {
     try {
-      const [bookingsData, servicesData, horariosData] = await Promise.all([
+      const [bookingsData, servicesData, horariosData, barbeirosData, bloqueiosData] = await Promise.all([
         getAllAgendamentos(),
         getAllServicos(),
         getHorariosFuncionamento(),
+        getBarbeiros(),
+        getBloqueiosHorarios(),
       ]);
 
       setBookings(bookingsData);
       setServices(servicesData);
       setHorarios(horariosData);
+      setBarbers(barbeirosData);
+      setBloqueios(bloqueiosData);
+      
+      // Selecionar primeiro barbeiro se não houver selecionado
+      if (barbeirosData.length > 0 && !newBloqueio.barbeiro_id) {
+        setNewBloqueio(prev => ({ ...prev, barbeiro_id: barbeirosData[0].id }));
+      }
+      
       setLoading(false);
     } catch (error) {
       console.error("Erro ao carregar dados:", error);
@@ -216,6 +242,58 @@ export function AdminDashboard() {
     } catch (error) {
       console.error("Erro ao excluir serviço:", error);
       alert("Erro ao excluir serviço.");
+    }
+  }
+
+  async function handleCreateBloqueio() {
+    if (!newBloqueio.barbeiro_id || !newBloqueio.data || !newBloqueio.hora_inicio || !newBloqueio.hora_fim) {
+      alert("Preencha todos os campos obrigatórios (Barbeiro, Data, Hora Início e Hora Fim).");
+      return;
+    }
+
+    if (newBloqueio.hora_fim <= newBloqueio.hora_inicio) {
+      alert("A hora de fim deve ser maior que a hora de início.");
+      return;
+    }
+
+    try {
+      const newId = await createBloqueioHorario(newBloqueio);
+      if (newId) {
+        setCreatingBloqueio(false);
+        setNewBloqueio({
+          barbeiro_id: barbers.length > 0 ? barbers[0].id : "",
+          data: "",
+          hora_inicio: "",
+          hora_fim: "",
+          motivo: "",
+        });
+        await loadData();
+        alert("Horário bloqueado com sucesso!");
+      } else {
+        alert("Erro ao bloquear horário.");
+      }
+    } catch (error) {
+      console.error("Erro ao criar bloqueio:", error);
+      alert("Erro ao bloquear horário.");
+    }
+  }
+
+  async function handleDeleteBloqueio(bloqueioId: string) {
+    if (!confirm("Tem certeza que deseja remover este bloqueio de horário?")) {
+      return;
+    }
+
+    try {
+      const success = await deleteBloqueioHorario(bloqueioId);
+      if (success) {
+        await loadData();
+        alert("Bloqueio removido com sucesso!");
+      } else {
+        alert("Erro ao remover bloqueio.");
+      }
+    } catch (error) {
+      console.error("Erro ao remover bloqueio:", error);
+      alert("Erro ao remover bloqueio.");
     }
   }
 
@@ -1138,6 +1216,176 @@ export function AdminDashboard() {
                     </div>
                   );
                 })}
+              </div>
+
+              {/* Seção de Bloqueios de Horários */}
+              <div className="mt-8 pt-8 border-t border-neutral-200">
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-lg sm:text-xl font-bold text-neutral-900">Bloqueios de Horários</h2>
+                  {!creatingBloqueio && (
+                    <button
+                      onClick={() => setCreatingBloqueio(true)}
+                      className="px-4 py-2 bg-gold-500 text-neutral-900 rounded-md font-semibold hover:bg-gold-400 transition-colors flex items-center gap-2"
+                    >
+                      <Plus className="h-4 w-4" />
+                      Novo Bloqueio
+                    </button>
+                  )}
+                </div>
+
+                {/* Formulário de criação de bloqueio */}
+                {creatingBloqueio && (
+                  <div className="border-2 border-gold-500 border-dashed rounded-lg p-4 bg-gold-50 mb-4">
+                    <h3 className="font-bold text-lg text-neutral-900 mb-4">Criar Novo Bloqueio</h3>
+                    <div className="space-y-4">
+                      <div>
+                        <label className="block text-sm font-medium text-neutral-700 mb-1">
+                          Barbeiro *
+                        </label>
+                        <select
+                          value={newBloqueio.barbeiro_id}
+                          onChange={(e) =>
+                            setNewBloqueio({ ...newBloqueio, barbeiro_id: e.target.value })
+                          }
+                          className="w-full px-3 py-2 border border-neutral-300 rounded-md"
+                        >
+                          <option value="">Selecione um barbeiro</option>
+                          {barbers.map((barber) => (
+                            <option key={barber.id} value={barber.id}>
+                              {barber.nome}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-neutral-700 mb-1">
+                          Data *
+                        </label>
+                        <input
+                          type="date"
+                          value={newBloqueio.data}
+                          onChange={(e) =>
+                            setNewBloqueio({ ...newBloqueio, data: e.target.value })
+                          }
+                          className="w-full px-3 py-2 border border-neutral-300 rounded-md"
+                          min={format(new Date(), "yyyy-MM-dd")}
+                        />
+                      </div>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-sm font-medium text-neutral-700 mb-1">
+                            Hora Início *
+                          </label>
+                          <input
+                            type="time"
+                            value={newBloqueio.hora_inicio}
+                            onChange={(e) =>
+                              setNewBloqueio({ ...newBloqueio, hora_inicio: e.target.value })
+                            }
+                            className="w-full px-3 py-2 border border-neutral-300 rounded-md"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-neutral-700 mb-1">
+                            Hora Fim *
+                          </label>
+                          <input
+                            type="time"
+                            value={newBloqueio.hora_fim}
+                            onChange={(e) =>
+                              setNewBloqueio({ ...newBloqueio, hora_fim: e.target.value })
+                            }
+                            className="w-full px-3 py-2 border border-neutral-300 rounded-md"
+                          />
+                        </div>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-neutral-700 mb-1">
+                          Motivo (opcional)
+                        </label>
+                        <input
+                          type="text"
+                          value={newBloqueio.motivo || ""}
+                          onChange={(e) =>
+                            setNewBloqueio({ ...newBloqueio, motivo: e.target.value })
+                          }
+                          className="w-full px-3 py-2 border border-neutral-300 rounded-md"
+                          placeholder="Ex: Compromisso pessoal"
+                        />
+                      </div>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={handleCreateBloqueio}
+                          className="px-4 py-2 bg-gold-500 text-neutral-900 rounded-md font-semibold hover:bg-gold-400 transition-colors flex items-center gap-2"
+                        >
+                          <Save className="h-4 w-4" />
+                          Criar Bloqueio
+                        </button>
+                        <button
+                          onClick={() => {
+                            setCreatingBloqueio(false);
+                            setNewBloqueio({
+                              barbeiro_id: barbers.length > 0 ? barbers[0].id : "",
+                              data: "",
+                              hora_inicio: "",
+                              hora_fim: "",
+                              motivo: "",
+                            });
+                          }}
+                          className="px-4 py-2 bg-neutral-200 text-neutral-700 rounded-md font-semibold hover:bg-neutral-300 transition-colors"
+                        >
+                          Cancelar
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Lista de bloqueios */}
+                <div className="space-y-3">
+                  {bloqueios.length === 0 ? (
+                    <p className="text-sm text-neutral-500 text-center py-4">
+                      Nenhum bloqueio cadastrado
+                    </p>
+                  ) : (
+                    bloqueios.map((bloqueio) => {
+                      const barbeiro = barbers.find((b) => b.id === bloqueio.barbeiro_id);
+                      return (
+                        <div
+                          key={bloqueio.id}
+                          className="border border-neutral-200 rounded-lg p-4 flex items-center justify-between"
+                        >
+                          <div>
+                            <div className="flex items-center gap-2">
+                              <span className="font-semibold text-neutral-900">
+                                {barbeiro?.nome || "Barbeiro não encontrado"}
+                              </span>
+                              <span className="text-sm text-neutral-500">•</span>
+                              <span className="text-sm text-neutral-600">
+                                {format(new Date(bloqueio.data), "dd/MM/yyyy", { locale: ptBR })}
+                              </span>
+                            </div>
+                            <div className="mt-1 text-sm text-neutral-600">
+                              {bloqueio.hora_inicio} - {bloqueio.hora_fim}
+                              {bloqueio.motivo && (
+                                <span className="ml-2 text-neutral-500">
+                                  ({bloqueio.motivo})
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                          <button
+                            onClick={() => handleDeleteBloqueio(bloqueio.id)}
+                            className="p-2 text-red-500 hover:bg-red-50 rounded transition-colors"
+                            title="Remover bloqueio"
+                          >
+                            <Trash2 className="h-5 w-5" />
+                          </button>
+                        </div>
+                      );
+                    })
+                  )}
+                </div>
               </div>
             </div>
           </div>
