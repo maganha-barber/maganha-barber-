@@ -320,6 +320,22 @@ export async function updateAgendamento(
   return true;
 }
 
+// Excluir agendamento (admin)
+export async function deleteAgendamento(id: string): Promise<boolean> {
+  const supabase = createClient();
+  const { error } = await supabase
+    .from("agendamentos")
+    .delete()
+    .eq("id", id);
+
+  if (error) {
+    console.error("Erro ao excluir agendamento:", error);
+    return false;
+  }
+
+  return true;
+}
+
 // Carregar bloqueios de horários
 export async function getBloqueiosHorarios(
   barbeiroId?: string,

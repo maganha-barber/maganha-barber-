@@ -35,6 +35,7 @@ import {
   updateHorarioFuncionamento,
   updateAgendamento,
   updateAgendamentoStatus,
+  deleteAgendamento,
   getBloqueiosHorarios,
   createBloqueioHorario,
   deleteBloqueioHorario,
@@ -753,13 +754,22 @@ export function AdminDashboard() {
                                     </button>
                                   </>
                                 ) : (
-                                  <button
-                                    onClick={() => handleEdit(booking)}
-                                    className="p-1.5 text-gold-500 hover:bg-gold-50 rounded transition-colors"
-                                    title="Editar horário"
-                                  >
-                                    <Edit className="h-4 w-4" />
-                                  </button>
+                                  <>
+                                    <button
+                                      onClick={() => handleEdit(booking)}
+                                      className="p-1.5 text-gold-500 hover:bg-gold-50 rounded transition-colors"
+                                      title="Editar horário"
+                                    >
+                                      <Edit className="h-4 w-4" />
+                                    </button>
+                                    <button
+                                      onClick={() => openDeleteBookingModal(booking.id)}
+                                      className="p-1.5 text-red-500 hover:bg-red-50 rounded transition-colors"
+                                      title="Excluir agendamento"
+                                    >
+                                      <Trash2 className="h-4 w-4" />
+                                    </button>
+                                  </>
                                 )}
                               </div>
                             </td>
