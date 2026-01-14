@@ -83,6 +83,8 @@ export function AdminDashboard() {
     hora_fim: "",
     motivo: "",
   });
+  const [selectedTimeSlots, setSelectedTimeSlots] = useState<Set<string>>(new Set());
+  const [availableTimeSlots, setAvailableTimeSlots] = useState<string[]>([]);
 
   useEffect(() => {
     if (status === "loading") return;
@@ -245,21 +247,133 @@ export function AdminDashboard() {
     }
   }
 
+  // Função para gerar slots de horário baseado nos horários de funcionamento
+  function gerarSlotsEntreHorarios(inicio: string, fim: string): string[] {
+    const slots: string[] = [];
+    const [hInicio, mInicio] = inicio.split(":").map(Number);
+    const [hFim, mFim] = fim.split(":").map(Number);
+    
+    let horaAtual = hInicio;
+    let minutoAtual = mInicio;
+    
+    while (horaAtual < hFim || (horaAtual === hFim && minutoAtual < mFim)) {
+      slots.push(`${horaAtual.toString().padStart(2, "0")}:${minutoAtual.toString().padStart(2, "0")}`);
+      minutoAtual += 10;
+      if (minutoAtual >= 60) {
+        minutoAtual = 0;
+        horaAtual++;
+      }
+    }
+    
+    return slots;
+  }
+
+  // Carregar horários disponíveis quando barbeiro e data forem selecionados
+  useEffect(() => {
+    if (creatingBloqueio && newBloqueio.barbeiro_id && newBloqueio.data) {
+      const dataSelecionada = new Date(newBloqueio.data);
+      const diaSemana = dataSelecionada.getDay() === 0 ? 7 : dataSelecionada.getDay(); // Domingo = 7
+      
+      const horarioDia = horarios.find(h => h.dia_semana === diaSemana);
+      
+      if (horarioDia && !horarioDia.fechado) {
+        const slots: string[] = [];
+        
+        if (horarioDia.horario_manha_inicio && horarioDia.horario_manha_fim) {
+          slots.push(...gerarSlotsEntreHorarios(horarioDia.horario_manha_inicio, horarioDia.horario_manha_fim));
+        }
+        
+        if (horarioDia.horario_tarde_inicio && horarioDia.horario_tarde_fim) {
+          slots.push(...gerarSlotsEntreHorarios(horarioDia.horario_tarde_inicio, horarioDia.horario_tarde_fim));
+        }
+        
+        // Filtrar horários já bloqueados
+        const dataStr = newBloqueio.data;
+        const bloqueiosDoDia = bloqueios.filter(
+          b => b.data === dataStr && b.barbeiro_id === newBloqueio.barbeiro_id
+        );
+        
+        const horariosBloqueados = new Set<string>();
+        bloqueiosDoDia.forEach(bloqueio => {
+          const [hInicio, mInicio] = bloqueio.hora_inicio.split(":").map(Number);
+          const [hFim, mFim] = bloqueio.hora_fim.split(":").map(Number);
+          const inicioMinutos = hInicio * 60 + mInicio;
+          const fimMinutos = hFim * 60 + mFim;
+          
+          for (let min = inicioMinutos; min < fimMinutos; min += 10) {
+            const h = Math.floor(min / 60);
+            const m = min % 60;
+            horariosBloqueados.add(`${h.toString().padStart(2, "0")}:${m.toString().padStart(2, "0")}`);
+          }
+        });
+        
+        const slotsDisponiveis = slots.filter(slot => !horariosBloqueados.has(slot));
+        setAvailableTimeSlots(slotsDisponiveis);
+      } else {
+        setAvailableTimeSlots([]);
+      }
+    } else {
+      setAvailableTimeSlots([]);
+    }
+  }, [creatingBloqueio, newBloqueio.barbeiro_id, newBloqueio.data, horarios, bloqueios]);
+
+  function toggleTimeSlot(slot: string) {
+    const newSelected = new Set(selectedTimeSlots);
+    if (newSelected.has(slot)) {
+      newSelected.delete(slot);
+    } else {
+      newSelected.add(slot);
+    }
+    setSelectedTimeSlots(newSelected);
+  }
+
   async function handleCreateBloqueio() {
-    if (!newBloqueio.barbeiro_id || !newBloqueio.data || !newBloqueio.hora_inicio || !newBloqueio.hora_fim) {
-      alert("Preencha todos os campos obrigatórios (Barbeiro, Data, Hora Início e Hora Fim).");
+    if (!newBloqueio.barbeiro_id || !newBloqueio.data) {
+      alert("Selecione o barbeiro e a data.");
       return;
     }
 
-    if (newBloqueio.hora_fim <= newBloqueio.hora_inicio) {
-      alert("A hora de fim deve ser maior que a hora de início.");
+    if (selectedTimeSlots.size === 0) {
+      alert("Selecione pelo menos um horário para bloquear.");
       return;
     }
 
     try {
-      const newId = await createBloqueioHorario(newBloqueio);
-      if (newId) {
+      // Ordenar horários selecionados
+      const slotsOrdenados = Array.from(selectedTimeSlots).sort();
+      
+      // Criar bloqueios de 10 minutos para cada horário selecionado
+      let sucesso = 0;
+      let erros = 0;
+      
+      for (const slot of slotsOrdenados) {
+        const bloqueio: Omit<BloqueioHorario, "id" | "created_at" | "updated_at"> = {
+          barbeiro_id: newBloqueio.barbeiro_id,
+          data: newBloqueio.data,
+          hora_inicio: slot,
+          hora_fim: slot, // Será ajustado para +10 minutos
+          motivo: newBloqueio.motivo || "",
+        };
+        
+        // Calcular hora fim (slot + 10 minutos)
+        const [hora, minuto] = slot.split(":").map(Number);
+        const totalMinutos = hora * 60 + minuto + 10;
+        const novaHora = Math.floor(totalMinutos / 60);
+        const novoMinuto = totalMinutos % 60;
+        bloqueio.hora_fim = `${novaHora.toString().padStart(2, "0")}:${novoMinuto.toString().padStart(2, "0")}`;
+        
+        const newId = await createBloqueioHorario(bloqueio);
+        if (newId) {
+          sucesso++;
+        } else {
+          erros++;
+        }
+      }
+      
+      if (sucesso > 0) {
         setCreatingBloqueio(false);
+        setSelectedTimeSlots(new Set());
+        setAvailableTimeSlots([]);
         setNewBloqueio({
           barbeiro_id: barbers.length > 0 ? barbers[0].id : "",
           data: "",
@@ -268,13 +382,13 @@ export function AdminDashboard() {
           motivo: "",
         });
         await loadData();
-        alert("Horário bloqueado com sucesso!");
+        alert(`${sucesso} horário(s) bloqueado(s) com sucesso!${erros > 0 ? ` ${erros} erro(s).` : ""}`);
       } else {
-        alert("Erro ao bloquear horário.");
+        alert("Erro ao bloquear horários.");
       }
     } catch (error) {
-      console.error("Erro ao criar bloqueio:", error);
-      alert("Erro ao bloquear horário.");
+      console.error("Erro ao criar bloqueios:", error);
+      alert("Erro ao bloquear horários.");
     }
   }
 
@@ -1238,67 +1352,85 @@ export function AdminDashboard() {
                   <div className="border-2 border-gold-500 border-dashed rounded-lg p-4 bg-gold-50 mb-4">
                     <h3 className="font-bold text-lg text-neutral-900 mb-4">Criar Novo Bloqueio</h3>
                     <div className="space-y-4">
-                      <div>
-                        <label className="block text-sm font-medium text-neutral-700 mb-1">
-                          Barbeiro *
-                        </label>
-                        <select
-                          value={newBloqueio.barbeiro_id}
-                          onChange={(e) =>
-                            setNewBloqueio({ ...newBloqueio, barbeiro_id: e.target.value })
-                          }
-                          className="w-full px-3 py-2 border border-neutral-300 rounded-md"
-                        >
-                          <option value="">Selecione um barbeiro</option>
-                          {barbers.map((barber) => (
-                            <option key={barber.id} value={barber.id}>
-                              {barber.nome}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-neutral-700 mb-1">
-                          Data *
-                        </label>
-                        <input
-                          type="date"
-                          value={newBloqueio.data}
-                          onChange={(e) =>
-                            setNewBloqueio({ ...newBloqueio, data: e.target.value })
-                          }
-                          className="w-full px-3 py-2 border border-neutral-300 rounded-md"
-                          min={format(new Date(), "yyyy-MM-dd")}
-                        />
-                      </div>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
                           <label className="block text-sm font-medium text-neutral-700 mb-1">
-                            Hora Início *
+                            Barbeiro *
                           </label>
-                          <input
-                            type="time"
-                            value={newBloqueio.hora_inicio}
-                            onChange={(e) =>
-                              setNewBloqueio({ ...newBloqueio, hora_inicio: e.target.value })
-                            }
+                          <select
+                            value={newBloqueio.barbeiro_id}
+                            onChange={(e) => {
+                              setNewBloqueio({ ...newBloqueio, barbeiro_id: e.target.value });
+                              setSelectedTimeSlots(new Set());
+                            }}
                             className="w-full px-3 py-2 border border-neutral-300 rounded-md"
-                          />
+                          >
+                            <option value="">Selecione um barbeiro</option>
+                            {barbers.map((barber) => (
+                              <option key={barber.id} value={barber.id}>
+                                {barber.nome}
+                              </option>
+                            ))}
+                          </select>
                         </div>
                         <div>
                           <label className="block text-sm font-medium text-neutral-700 mb-1">
-                            Hora Fim *
+                            Data *
                           </label>
                           <input
-                            type="time"
-                            value={newBloqueio.hora_fim}
-                            onChange={(e) =>
-                              setNewBloqueio({ ...newBloqueio, hora_fim: e.target.value })
-                            }
+                            type="date"
+                            value={newBloqueio.data}
+                            onChange={(e) => {
+                              setNewBloqueio({ ...newBloqueio, data: e.target.value });
+                              setSelectedTimeSlots(new Set());
+                            }}
                             className="w-full px-3 py-2 border border-neutral-300 rounded-md"
+                            min={format(new Date(), "yyyy-MM-dd")}
                           />
                         </div>
                       </div>
+                      
+                      {newBloqueio.barbeiro_id && newBloqueio.data && availableTimeSlots.length > 0 && (
+                        <div>
+                          <label className="block text-sm font-medium text-neutral-700 mb-3">
+                            Selecione os horários que deseja bloquear ({selectedTimeSlots.size} selecionado{selectedTimeSlots.size !== 1 ? "s" : ""})
+                          </label>
+                          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2 max-h-96 overflow-y-auto p-2 border border-neutral-200 rounded-lg bg-white">
+                            {availableTimeSlots.map((slot) => {
+                              const isSelected = selectedTimeSlots.has(slot);
+                              return (
+                                <button
+                                  key={slot}
+                                  type="button"
+                                  onClick={() => toggleTimeSlot(slot)}
+                                  className={`px-3 py-2 rounded-lg text-sm font-medium transition-all ${
+                                    isSelected
+                                      ? "bg-gold-500 text-neutral-900 border-2 border-gold-600"
+                                      : "bg-neutral-100 text-neutral-700 border border-neutral-300 hover:bg-neutral-200"
+                                  }`}
+                                >
+                                  {slot}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      )}
+                      
+                      {newBloqueio.barbeiro_id && newBloqueio.data && availableTimeSlots.length === 0 && (
+                        <div className="text-sm text-neutral-600 bg-neutral-100 p-3 rounded-lg">
+                          {horarios.find(h => {
+                            const dataSelecionada = new Date(newBloqueio.data);
+                            const diaSemana = dataSelecionada.getDay() === 0 ? 7 : dataSelecionada.getDay();
+                            return h.dia_semana === diaSemana;
+                          })?.fechado ? (
+                            "Este dia está fechado."
+                          ) : (
+                            "Não há horários disponíveis para esta data ou todos já estão bloqueados."
+                          )}
+                        </div>
+                      )}
+                      
                       <div>
                         <label className="block text-sm font-medium text-neutral-700 mb-1">
                           Motivo (opcional)
@@ -1313,17 +1445,20 @@ export function AdminDashboard() {
                           placeholder="Ex: Compromisso pessoal"
                         />
                       </div>
-                      <div className="flex gap-2">
+                      <div className="flex gap-2 flex-wrap">
                         <button
                           onClick={handleCreateBloqueio}
-                          className="px-4 py-2 bg-gold-500 text-neutral-900 rounded-md font-semibold hover:bg-gold-400 transition-colors flex items-center gap-2"
+                          disabled={selectedTimeSlots.size === 0}
+                          className="px-4 py-2 bg-gold-500 text-neutral-900 rounded-md font-semibold hover:bg-gold-400 transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                           <Save className="h-4 w-4" />
-                          Criar Bloqueio
+                          Bloquear {selectedTimeSlots.size > 0 ? `${selectedTimeSlots.size} horário(s)` : "horários"}
                         </button>
                         <button
                           onClick={() => {
                             setCreatingBloqueio(false);
+                            setSelectedTimeSlots(new Set());
+                            setAvailableTimeSlots([]);
                             setNewBloqueio({
                               barbeiro_id: barbers.length > 0 ? barbers[0].id : "",
                               data: "",
