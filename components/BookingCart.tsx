@@ -49,7 +49,7 @@ export function BookingCart({ service, barberName }: BookingCartProps) {
           </div>
           <div className="flex items-center gap-2 text-sm text-neutral-600">
             <MapPin className="h-4 w-4" />
-            <span>Rua Marquês de Abrantes, Barbearia, Jardim...</span>
+            <span>Rua Marquês de Abrantes, Barbearia, Jardim Bom Astor, Minas Gerais</span>
           </div>
         </div>
       </div>
@@ -58,7 +58,7 @@ export function BookingCart({ service, barberName }: BookingCartProps) {
       <div className="mb-6 pb-6 border-b border-neutral-200">
         <h4 className="font-semibold text-neutral-900 mb-2">{service.nome}</h4>
         <div className="text-sm text-neutral-600 mb-3">
-          {formatDuration(service.duracao_minutos)} • {service.precoOriginal ? "3 serviços" : "1 serviço"} com qualquer profissional
+          {formatDuration(service.duracao_minutos)} • {service.precoOriginal ? "3 serviços" : "1 serviço"} com {barberName}
         </div>
         <div className="flex items-center gap-2">
           <span className="text-lg font-bold text-neutral-900">R$ {total.toFixed(2)}</span>

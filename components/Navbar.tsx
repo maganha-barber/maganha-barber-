@@ -130,7 +130,7 @@ export function Navbar() {
               className="text-neutral-400 text-sm py-2 flex items-center gap-2"
             >
               <MapPin className="h-4 w-4" />
-              Rua das Barbearias, 123 - Centro
+              Rua Marquês de Abrantes, Barbearia, Jardim Bom Astor, MG
             </a>
             <Link
               href="/auth"
