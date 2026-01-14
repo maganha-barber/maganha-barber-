@@ -148,7 +148,9 @@ export function Navbar() {
               Rua Marquês de Abrantes, Barbearia, Jardim Bom Astor, MG
             </a>
             {session ? (
-              <UserMenu />
+              <div className="mt-4">
+                <UserMenu />
+              </div>
             ) : (
               <button
                 onClick={() => {

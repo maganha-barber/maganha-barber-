@@ -50,25 +50,25 @@ export function UserMenu() {
     .slice(0, 2) || "U";
 
   return (
-    <div className="relative" ref={menuRef}>
+    <div className="relative w-full md:w-auto" ref={menuRef}>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-neutral-800 transition-colors"
+        className="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-neutral-800 transition-colors w-full md:w-auto"
       >
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-full bg-gold-500 flex items-center justify-center text-neutral-900 font-bold text-sm">
+        <div className="flex items-center gap-2 w-full md:w-auto">
+          <div className="w-10 h-10 md:w-8 md:h-8 rounded-full bg-gold-500 flex items-center justify-center text-neutral-900 font-bold text-sm flex-shrink-0">
             {session.user?.image ? (
               <img
                 src={session.user.image}
                 alt={session.user.name || "User"}
-                className="w-8 h-8 rounded-full object-cover"
+                className="w-10 h-10 md:w-8 md:h-8 rounded-full object-cover"
               />
             ) : (
               userInitials
             )}
           </div>
-          <div className="hidden md:block text-left">
-            <p className="text-sm font-semibold text-white">
+          <div className="text-left flex-1">
+            <p className="text-sm md:text-sm font-semibold text-white">
               {session.user?.name?.toUpperCase() || "USUÁRIO"}
             </p>
             <p className="text-xs text-neutral-400">Minha Conta</p>
@@ -77,7 +77,7 @@ export function UserMenu() {
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-56 bg-neutral-800 rounded-lg shadow-xl border border-neutral-700 overflow-hidden z-50">
+        <div className="absolute left-0 md:right-0 md:left-auto mt-2 w-full md:w-56 bg-neutral-800 rounded-lg shadow-xl border border-neutral-700 overflow-hidden z-50">
           <div className="px-4 py-3 border-b border-neutral-700 md:hidden">
             <p className="text-sm font-semibold text-white">{session.user?.name}</p>
             <p className="text-xs text-neutral-400">{session.user?.email}</p>
