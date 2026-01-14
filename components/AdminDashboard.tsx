@@ -276,7 +276,7 @@ export function AdminDashboard() {
       
       const horarioDia = horarios.find(h => h.dia_semana === diaSemana);
       
-      if (horarioDia && !horarioDia.fechado) {
+      if (horarioDia && horarioDia.aberto) {
         const slots: string[] = [];
         
         if (horarioDia.horario_manha_inicio && horarioDia.horario_manha_fim) {
@@ -1423,7 +1423,7 @@ export function AdminDashboard() {
                             const dataSelecionada = new Date(newBloqueio.data);
                             const diaSemana = dataSelecionada.getDay() === 0 ? 7 : dataSelecionada.getDay();
                             return h.dia_semana === diaSemana;
-                          })?.fechado ? (
+                          })?.aberto === false ? (
                             "Este dia está fechado."
                           ) : (
                             "Não há horários disponíveis para esta data ou todos já estão bloqueados."
