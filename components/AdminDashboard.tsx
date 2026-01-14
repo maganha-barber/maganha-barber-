@@ -809,12 +809,22 @@ export function AdminDashboard() {
                             )}
                           </div>
                           {!isEditing && (
-                            <button
-                              onClick={() => handleEdit(booking)}
-                              className="p-1.5 text-gold-500 hover:bg-gold-50 rounded transition-colors"
-                            >
-                              <Edit className="h-4 w-4" />
-                            </button>
+                            <div className="flex items-center gap-2">
+                              <button
+                                onClick={() => handleEdit(booking)}
+                                className="p-1.5 text-gold-500 hover:bg-gold-50 rounded transition-colors"
+                                title="Editar"
+                              >
+                                <Edit className="h-4 w-4" />
+                              </button>
+                              <button
+                                onClick={() => openDeleteBookingModal(booking.id)}
+                                className="p-1.5 text-red-500 hover:bg-red-50 rounded transition-colors"
+                                title="Excluir"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </button>
+                            </div>
                           )}
                         </div>
                         
