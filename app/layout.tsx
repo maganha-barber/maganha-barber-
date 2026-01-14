@@ -19,7 +19,7 @@ const playfair = Playfair_Display({
 });
 
 export const metadata: Metadata = {
-  title: "MagBarber - Agendamentos Premium",
+  title: "Maganha Barbearia - Agendamentos Premium",
   description: "Agende seu horário na melhor barbearia da cidade",
 };
 
