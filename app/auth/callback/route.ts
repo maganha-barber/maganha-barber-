@@ -97,19 +97,55 @@ export async function GET(request: Request) {
         <head>
           <title>Redirecionando...</title>
           <script>
-            // Salvar dados do usuário no localStorage com verificação de admin
-            const userData = ${JSON.stringify(userDataToSave)};
-            localStorage.setItem('magbarber_user', JSON.stringify(userData));
-            // Disparar evento para atualizar componentes
-            window.dispatchEvent(new Event('userUpdated'));
-            // Redirecionar
-            setTimeout(() => {
-              window.location.href = "${requestUrl.origin}${redirectTo}";
-            }, 100);
+            (function() {
+              // Salvar dados do usuário no localStorage com verificação de admin
+              const userData = ${JSON.stringify(userDataToSave)};
+              
+              // Garantir que o localStorage está disponível
+              if (typeof Storage !== 'undefined') {
+                try {
+                  localStorage.setItem('magbarber_user', JSON.stringify(userData));
+                  console.log('Usuário salvo:', userData);
+                  
+                  // Disparar evento para atualizar componentes (múltiplas vezes para garantir)
+                  window.dispatchEvent(new Event('userUpdated'));
+                  
+                  // Também disparar evento storage para garantir sincronização
+                  window.dispatchEvent(new StorageEvent('storage', {
+                    key: 'magbarber_user',
+                    newValue: JSON.stringify(userData)
+                  }));
+                  
+                  // Aguardar um pouco mais para garantir que tudo foi salvo
+                  setTimeout(() => {
+                    // Verificar se foi salvo corretamente
+                    const saved = localStorage.getItem('magbarber_user');
+                    if (saved) {
+                      console.log('Usuário confirmado no localStorage');
+                    }
+                    // Redirecionar
+                    window.location.href = "${requestUrl.origin}${redirectTo}";
+                  }, 300);
+                } catch (e) {
+                  console.error('Erro ao salvar usuário:', e);
+                  // Mesmo com erro, tentar redirecionar
+                  setTimeout(() => {
+                    window.location.href = "${requestUrl.origin}${redirectTo}";
+                  }, 500);
+                }
+              } else {
+                console.error('localStorage não disponível');
+                setTimeout(() => {
+                  window.location.href = "${requestUrl.origin}${redirectTo}";
+                }, 500);
+              }
+            })();
           </script>
         </head>
         <body>
-          <p>Redirecionando...</p>
+          <div style="display: flex; align-items: center; justify-content: center; height: 100vh; font-family: Arial, sans-serif;">
+            <p>Redirecionando...</p>
+          </div>
         </body>
       </html>
     `;

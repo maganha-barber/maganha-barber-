@@ -1,5 +1,7 @@
 "use client";
 
+import { Logo } from "./Logo";
+
 export function About() {
   return (
     <section id="sobre" className="w-full py-20 bg-neutral-800">
@@ -30,7 +32,7 @@ export function About() {
           {/* Coluna Direita - Logo */}
           <div className="flex items-center justify-center">
             <div className="w-full max-w-md">
-              <Logo className="h-full w-full" />
+              <Logo className="h-64 w-64" />
             </div>
           </div>
         </div>
@@ -38,9 +40,6 @@ export function About() {
     </section>
   );
 }
-
-// Componente Logo inline para a seção Sobre
-function Logo({ className = "h-64 w-64" }: { className?: string }) {
   return (
     <svg
       viewBox="0 0 200 200"

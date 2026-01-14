@@ -15,7 +15,9 @@ export function UserMenu() {
     // Atualizar usuário quando mudar
     const updateUser = () => {
       const currentUser = getUser();
-      setUser(currentUser);
+      if (currentUser !== user) {
+        setUser(currentUser);
+      }
     };
     
     // Verificar imediatamente
@@ -25,8 +27,18 @@ export function UserMenu() {
     window.addEventListener('storage', updateUser);
     window.addEventListener('userUpdated', updateUser);
     
-    // Verificar periodicamente também (para garantir sincronização)
-    const interval = setInterval(updateUser, 500);
+    // Verificar periodicamente também (para garantir sincronização após login)
+    // Verificar mais frequentemente nos primeiros segundos após carregar
+    const interval = setInterval(() => {
+      updateUser();
+    }, 200);
+    
+    // Após 5 segundos, reduzir a frequência
+    const slowInterval = setTimeout(() => {
+      clearInterval(interval);
+      const newInterval = setInterval(updateUser, 2000);
+      return () => clearInterval(newInterval);
+    }, 5000);
     
     // Fechar menu ao clicar fora
     function handleClickOutside(event: MouseEvent) {
@@ -36,13 +48,22 @@ export function UserMenu() {
     }
     
     document.addEventListener('mousedown', handleClickOutside);
+    
+    // Também verificar quando a página ganha foco (após redirecionamento)
+    const handleFocus = () => {
+      updateUser();
+    };
+    window.addEventListener('focus', handleFocus);
+    
     return () => {
       window.removeEventListener('storage', updateUser);
       window.removeEventListener('userUpdated', updateUser);
+      window.removeEventListener('focus', handleFocus);
       document.removeEventListener('mousedown', handleClickOutside);
       clearInterval(interval);
+      clearTimeout(slowInterval);
     };
-  }, []);
+  }, [user]);
 
   if (!user) {
     return (
