@@ -2,10 +2,10 @@
 
 import { useEffect, useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { useSession } from "next-auth/react";
 import { Calendar, Clock, Scissors, User, CheckCircle, X, AlertCircle } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { getUser } from "@/lib/auth";
 
 interface Booking {
   id: string;
@@ -20,48 +20,57 @@ interface Booking {
 }
 
 const SERVICE_LABELS: Record<string, string> = {
-  "1": "Corte Clássico",
-  "2": "Barba Premium",
-  "3": "Combo Completo",
+  "1": "Completo (Corte, Barba, Sobrancelhas)",
+  "2": "Corte de cabelo",
+  "3": "Barba",
+  "4": "Sobrancelhas",
+  "5": "Pezinho",
 };
 
 const BARBER_LABELS: Record<string, string> = {
-  "1": "João Silva",
-  "2": "Carlos Santos",
-  "3": "Pedro Oliveira",
+  "1": "Ronnie Maganha",
 };
 
 function MyBookingsContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { data: session, status } = useSession();
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
   const [cancellingId, setCancellingId] = useState<string | null>(null);
 
   useEffect(() => {
-    loadBookings();
+    if (status === "loading") return;
+    
+    if (status === "unauthenticated") {
+      router.push("/auth?redirect=/meus-agendamentos");
+      return;
+    }
+
+    if (session) {
+      loadBookings();
+    }
 
     if (searchParams.get("success") === "true") {
       setTimeout(() => {
         alert("Agendamento confirmado com sucesso! Aguarde a confirmação do administrador.");
       }, 100);
     }
-  }, []);
+  }, [status, session, router, searchParams]);
 
   function loadBookings() {
-    if (typeof window === "undefined") return;
-
-    const user = getUser();
-    if (!user) {
-      router.push("/auth?redirect=/meus-agendamentos");
-      return;
-    }
+    if (typeof window === "undefined" || !session?.user?.email) return;
 
     const stored = window.localStorage.getItem("magbarber_bookings");
     const parsed: Booking[] = stored ? JSON.parse(stored) : [];
 
-    // Filtrar apenas agendamentos do usuário logado
-    const userBookings = parsed.filter((b) => b.usuario_id === user.id);
+    // Filtrar apenas agendamentos do usuário logado (por email ou ID)
+    const userEmail = session.user.email;
+    const userId = session.user.email || session.user.name || "";
+    
+    const userBookings = parsed.filter(
+      (b) => b.usuario_email === userEmail || b.usuario_id === userId
+    );
 
     // Manter apenas agendamentos futuros ou pendentes/confirmados
     const todayStr = new Date().toISOString().split("T")[0];
@@ -131,12 +140,16 @@ function MyBookingsContent() {
     }
   }
 
-  if (loading) {
+  if (status === "loading" || loading) {
     return (
       <div className="text-center py-12">
         <p className="text-neutral-600">Carregando agendamentos...</p>
       </div>
     );
+  }
+
+  if (status === "unauthenticated") {
+    return null;
   }
 
   if (bookings.length === 0) {
