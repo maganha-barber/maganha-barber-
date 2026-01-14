@@ -37,11 +37,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="pt-BR" className="scroll-smooth overflow-x-hidden">
-      <body className={`${inter.variable} ${playfair.variable} antialiased overflow-x-hidden`}>
+    <html lang="pt-BR" className="scroll-smooth overflow-x-hidden" style={{ margin: 0, padding: 0 }}>
+      <body className={`${inter.variable} ${playfair.variable} antialiased overflow-x-hidden`} style={{ margin: 0, padding: 0 }}>
         <Providers>
           <Navbar />
-          <main className="min-h-screen">
+          <main className="min-h-screen" style={{ margin: 0 }}>
             {children}
           </main>
           <Footer />
