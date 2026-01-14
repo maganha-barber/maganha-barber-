@@ -1,6 +1,6 @@
 "use client";
 
-import { Phone, Mail, MapPin, Clock, Instagram, Facebook, Scissors } from "lucide-react";
+import { Phone, Mail, MapPin, Clock, Instagram, MessageCircle, Scissors } from "lucide-react";
 
 export function Footer() {
   const horarios = [
@@ -30,18 +30,22 @@ export function Footer() {
             </p>
             <div className="flex gap-3">
               <a
-                href="#"
+                href="https://www.instagram.com/maganha_barbearia/"
+                target="_blank"
+                rel="noopener noreferrer"
                 className="w-9 h-9 bg-gold-500/10 hover:bg-gold-500/20 rounded-full flex items-center justify-center transition-colors border border-gold-500/20"
                 aria-label="Instagram"
               >
                 <Instagram className="h-4 w-4 text-gold-400" />
               </a>
               <a
-                href="#"
+                href="https://wa.me/5535998361668"
+                target="_blank"
+                rel="noopener noreferrer"
                 className="w-9 h-9 bg-gold-500/10 hover:bg-gold-500/20 rounded-full flex items-center justify-center transition-colors border border-gold-500/20"
-                aria-label="Facebook"
+                aria-label="WhatsApp"
               >
-                <Facebook className="h-4 w-4 text-gold-400" />
+                <MessageCircle className="h-4 w-4 text-gold-400" />
               </a>
             </div>
           </div>
