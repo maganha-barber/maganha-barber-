@@ -51,7 +51,7 @@ export function AdminDashboard() {
   const [editDate, setEditDate] = useState<string>("");
   const [editTime, setEditTime] = useState<string>("");
   const [editingServiceId, setEditingServiceId] = useState<string | null>(null);
-  const [editingHorarioId, setEditingHorarioId] = useState<string | null>(null);
+  const [editingHorarioId, setEditingHorarioId] = useState<number | null>(null);
   const [editedServices, setEditedServices] = useState<Record<string, Service>>({});
   const [editedHorarios, setEditedHorarios] = useState<Record<number, HorarioFuncionamento>>({});
 
