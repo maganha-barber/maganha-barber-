@@ -94,6 +94,8 @@ export function AdminDashboard() {
   const [serviceToDelete, setServiceToDelete] = useState<string | null>(null);
   const [showDeleteBloqueioModal, setShowDeleteBloqueioModal] = useState(false);
   const [bloqueioToDelete, setBloqueioToDelete] = useState<string | null>(null);
+  const [showDeleteBookingModal, setShowDeleteBookingModal] = useState(false);
+  const [bookingToDelete, setBookingToDelete] = useState<string | null>(null);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [showErrorModal, setShowErrorModal] = useState(false);
   const [modalMessage, setModalMessage] = useState("");
@@ -439,6 +441,35 @@ export function AdminDashboard() {
       console.error("Erro ao remover bloqueio:", error);
       setShowDeleteBloqueioModal(false);
       setModalMessage("Erro ao remover bloqueio.");
+      setShowErrorModal(true);
+    }
+  }
+
+  function openDeleteBookingModal(bookingId: string) {
+    setBookingToDelete(bookingId);
+    setShowDeleteBookingModal(true);
+  }
+
+  async function handleDeleteBooking() {
+    if (!bookingToDelete) return;
+
+    try {
+      const success = await deleteAgendamento(bookingToDelete);
+      if (success) {
+        await loadData();
+        setShowDeleteBookingModal(false);
+        setBookingToDelete(null);
+        setModalMessage("Agendamento excluído com sucesso!");
+        setShowSuccessModal(true);
+      } else {
+        setShowDeleteBookingModal(false);
+        setModalMessage("Erro ao excluir agendamento.");
+        setShowErrorModal(true);
+      }
+    } catch (error) {
+      console.error("Erro ao excluir agendamento:", error);
+      setShowDeleteBookingModal(false);
+      setModalMessage("Erro ao excluir agendamento.");
       setShowErrorModal(true);
     }
   }
@@ -1615,6 +1646,20 @@ export function AdminDashboard() {
         title="Remover Bloqueio"
         message="Tem certeza que deseja remover este bloqueio de horário?"
         confirmText="Sim, Remover"
+        cancelText="Cancelar"
+        type="danger"
+      />
+
+      <ConfirmModal
+        isOpen={showDeleteBookingModal}
+        onClose={() => {
+          setShowDeleteBookingModal(false);
+          setBookingToDelete(null);
+        }}
+        onConfirm={handleDeleteBooking}
+        title="Excluir Agendamento"
+        message="Tem certeza que deseja excluir este agendamento? Esta ação não pode ser desfeita."
+        confirmText="Sim, Excluir"
         cancelText="Cancelar"
         type="danger"
       />
