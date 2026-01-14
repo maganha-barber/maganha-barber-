@@ -4,7 +4,6 @@ import { useState, useEffect } from "react";
 import { Menu, X, Calendar, User, Scissors, Phone, MapPin } from "lucide-react";
 import { useSession, signIn } from "next-auth/react";
 import Link from "next/link";
-import { Logo } from "./Logo";
 import { UserMenu } from "./UserMenu";
 
 export function Navbar() {
@@ -32,7 +31,7 @@ export function Navbar() {
         <div className="flex justify-between items-center h-20">
           {/* Logo */}
           <Link href="/" className="flex items-center space-x-3 group">
-            <Logo className="h-12 w-12" />
+            <Scissors className="h-8 w-8 md:h-10 md:w-10 text-gold-400 group-hover:text-gold-300 transition-colors" />
             <div className="flex flex-col">
               <span className="font-serif text-xl font-bold text-white leading-tight">
                 MAGANHA

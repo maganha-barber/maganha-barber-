@@ -1,7 +1,6 @@
 "use client";
 
-import { Phone, Mail, MapPin, Clock, Instagram, Facebook } from "lucide-react";
-import { Logo } from "./Logo";
+import { Phone, Mail, MapPin, Clock, Instagram, Facebook, Scissors } from "lucide-react";
 
 export function Footer() {
   const horarios = [
@@ -21,7 +20,7 @@ export function Footer() {
           {/* Logo e Descrição */}
           <div className="col-span-1 md:col-span-2 lg:col-span-2">
             <div className="flex items-center gap-3 mb-4">
-              <Logo className="h-10 w-10 text-gold-400" />
+              <Scissors className="h-8 w-8 md:h-10 md:w-10 text-gold-400" />
               <span className="font-serif text-2xl font-bold text-gold-400">
                 Maganha Barbearia
               </span>
