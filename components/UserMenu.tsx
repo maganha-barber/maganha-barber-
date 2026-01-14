@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useSession, signIn, signOut } from "next-auth/react";
 import { Shield, Calendar, LogOut } from "lucide-react";
@@ -14,13 +14,21 @@ export function UserMenu() {
   const menuRef = useRef<HTMLDivElement>(null);
 
   // Fechar menu ao clicar fora
-  if (typeof window !== "undefined") {
-    document.addEventListener("mousedown", (event: MouseEvent) => {
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
       if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
         setIsOpen(false);
       }
-    });
-  }
+    }
+    
+    if (isOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+    
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [isOpen]);
 
   if (!session) {
     return (
