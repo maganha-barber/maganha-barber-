@@ -178,24 +178,26 @@ DECLARE
   v_conflito BOOLEAN;
 BEGIN
   -- Verificar se há conflito de horário
+  -- Fazemos JOIN com servicos para buscar a duracao_minutos correta
   SELECT EXISTS(
     SELECT 1
-    FROM agendamentos
-    WHERE barbeiro_id = p_barbeiro_id
-      AND data = p_data
-      AND status NOT IN ('cancelado', 'concluido')
+    FROM agendamentos a
+    INNER JOIN servicos s ON a.servico_id = s.id
+    WHERE a.barbeiro_id = p_barbeiro_id
+      AND a.data = p_data
+      AND a.status NOT IN ('cancelado', 'concluido')
       AND (
         -- Horário de início dentro de outro agendamento
-        (hora <= p_hora AND hora + (duracao_minutos || ' minutes')::INTERVAL > p_hora)
+        (a.hora <= p_hora AND a.hora + (s.duracao_minutos || ' minutes')::INTERVAL > p_hora)
         OR
         -- Horário de fim dentro de outro agendamento
-        (p_hora + (p_duracao_minutos || ' minutes')::INTERVAL > hora 
-         AND p_hora + (p_duracao_minutos || ' minutes')::INTERVAL <= hora + (duracao_minutos || ' minutes')::INTERVAL)
+        (p_hora + (p_duracao_minutos || ' minutes')::INTERVAL > a.hora 
+         AND p_hora + (p_duracao_minutos || ' minutes')::INTERVAL <= a.hora + (s.duracao_minutos || ' minutes')::INTERVAL)
         OR
         -- Agendamento engloba outro completamente
-        (hora >= p_hora AND hora + (duracao_minutos || ' minutes')::INTERVAL <= p_hora + (p_duracao_minutos || ' minutes')::INTERVAL)
+        (a.hora >= p_hora AND a.hora + (s.duracao_minutos || ' minutes')::INTERVAL <= p_hora + (p_duracao_minutos || ' minutes')::INTERVAL)
       )
-      AND (p_agendamento_id IS NULL OR id != p_agendamento_id)
+      AND (p_agendamento_id IS NULL OR a.id != p_agendamento_id)
   ) INTO v_conflito;
   
   RETURN NOT v_conflito; -- Retorna true se NÃO houver conflito
