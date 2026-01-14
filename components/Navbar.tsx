@@ -2,11 +2,13 @@
 
 import { useState, useEffect } from "react";
 import { Menu, X, Calendar, User, Scissors, Phone, MapPin } from "lucide-react";
+import { useSession, signIn } from "next-auth/react";
 import Link from "next/link";
 import { Logo } from "./Logo";
 import { UserMenu } from "./UserMenu";
 
 export function Navbar() {
+  const { data: session } = useSession();
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
@@ -145,13 +147,19 @@ export function Navbar() {
               <MapPin className="h-4 w-4" />
               Rua Marquês de Abrantes, Barbearia, Jardim Bom Astor, MG
             </a>
-            <Link
-              href="/auth"
-              onClick={() => setIsOpen(false)}
-              className="mt-4 w-full bg-gold-500 text-neutral-900 font-bold text-base py-3 rounded-md text-center hover:bg-gold-400 transition-colors shadow-md"
-            >
-              Login
-            </Link>
+            {session ? (
+              <UserMenu />
+            ) : (
+              <button
+                onClick={() => {
+                  setIsOpen(false);
+                  signIn("google");
+                }}
+                className="mt-4 w-full bg-gold-500 text-neutral-900 font-bold text-base py-3 rounded-md text-center hover:bg-gold-400 transition-colors shadow-md"
+              >
+                Login
+              </button>
+            )}
           </div>
         </div>
       )}
