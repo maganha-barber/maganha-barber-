@@ -791,6 +791,12 @@ export function AdminDashboard() {
                               {booking.usuario_nome || "Cliente"}
                             </p>
                             <p className="text-xs text-neutral-500">{booking.usuario_email}</p>
+                            {booking.telefone && (
+                              <p className="text-xs text-neutral-500 flex items-center gap-1 mt-1">
+                                <Phone className="h-3 w-3" />
+                                {booking.telefone}
+                              </p>
+                            )}
                           </div>
                           {!isEditing && (
                             <button
