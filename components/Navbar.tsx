@@ -26,7 +26,6 @@ export function Navbar() {
           ? "bg-neutral-900/95 backdrop-blur-md shadow-lg border-b border-gold-500/20"
           : "bg-neutral-900/80 backdrop-blur-sm"
       }`}
-      style={{ margin: 0, padding: 0, position: 'relative' }}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-20">
@@ -145,7 +144,7 @@ export function Navbar() {
               className="text-neutral-400 text-sm py-2 flex items-center gap-2"
             >
               <MapPin className="h-4 w-4" />
-              Rua Marquês de Abrantes, Barbearia, Jardim Bom Astor, MG
+              R. Marquês de Abrantes, 860 - Centro, Três Pontas - MG
             </a>
             {session ? (
               <div className="mt-4">

@@ -71,8 +71,9 @@ export function Footer() {
               <li className="flex items-start gap-3">
                 <MapPin className="h-4 w-4 text-gold-400 mt-0.5 flex-shrink-0" />
                 <p className="text-neutral-300 text-sm leading-relaxed">
-                  Rua Marquês de Abrantes, Barbearia<br />
-                  Jardim Bom Astor, Minas Gerais
+                  Maganha Barbearia<br />
+                  R. Marquês de Abrantes, 860 - Centro<br />
+                  Três Pontas - MG, 37190-000
                 </p>
               </li>
             </ul>
