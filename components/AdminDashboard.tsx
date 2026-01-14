@@ -52,6 +52,8 @@ export function AdminDashboard() {
   const [editTime, setEditTime] = useState<string>("");
   const [editingServiceId, setEditingServiceId] = useState<string | null>(null);
   const [editingHorarioId, setEditingHorarioId] = useState<string | null>(null);
+  const [editedServices, setEditedServices] = useState<Record<string, Service>>({});
+  const [editedHorarios, setEditedHorarios] = useState<Record<number, HorarioFuncionamento>>({});
 
   useEffect(() => {
     if (status === "loading") return;
